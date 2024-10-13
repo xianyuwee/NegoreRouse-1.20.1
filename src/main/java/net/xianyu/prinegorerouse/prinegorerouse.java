@@ -1,9 +1,12 @@
 package net.xianyu.prinegorerouse;
 
 import com.mojang.logging.LogUtils;
+import mods.flammpfeil.slashblade.client.renderer.entity.DriveRenderer;
+import mods.flammpfeil.slashblade.client.renderer.entity.SummonedSwordRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -13,8 +16,12 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.RegisterEvent;
 import net.xianyu.prinegorerouse.item.ModItems;
 import net.xianyu.prinegorerouse.item.PriNRModTabs;
+import net.xianyu.prinegorerouse.registry.NrComboStateRegistry;
+import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
+import net.xianyu.prinegorerouse.registry.NrSlashArtRegistry;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
 import org.slf4j.Logger;
 
@@ -38,7 +45,11 @@ public class prinegorerouse {
 
         ModItems.register(modEventBus);
 
+        modEventBus.addListener(this::register);
+
         modEventBus.addListener(this::commonSetup);
+
+        modEventBus.addListener(this::onRegisterRenderers);
 
         MinecraftForge.EVENT_BUS.register(this);
 
@@ -46,8 +57,10 @@ public class prinegorerouse {
 
         NrSpecialEffectsRegistry.SPECIAL_EFFECT.register(modEventBus);
 
-    }
+        NrSlashArtRegistry.NR_SLASH_ARTS.register(modEventBus);
 
+        NrComboStateRegistry.NR_COMBO_STATE.register(modEventBus);
+    }
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {}
@@ -67,6 +80,12 @@ public class prinegorerouse {
         }
     }
 
+    public void register(RegisterEvent event) {
+        NrEntitiesRegistry.register(event);
+    }
+
+
+
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event)
@@ -78,10 +97,14 @@ public class prinegorerouse {
     {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event)
-        {
-
-        }
+        {}
 
     }
 
+    public void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(NrEntitiesRegistry.BlisteringSword, SummonedSwordRenderer::new);
+        event.registerEntityRenderer(NrEntitiesRegistry.Zenith12th_Sword, SummonedSwordRenderer::new);
+        event.registerEntityRenderer(NrEntitiesRegistry.Storm_Sword, SummonedSwordRenderer::new);
+        event.registerEntityRenderer(NrEntitiesRegistry.DriveEx, DriveRenderer::new);
+    }
 }

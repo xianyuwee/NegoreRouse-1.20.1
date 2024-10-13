@@ -51,7 +51,7 @@ public class Phantom extends SpecialEffect {
                     ServerLevel serverLevel2 = (ServerLevel) event.getLevel();
                     if (event.getSlashBladeState().hasChangedActiveState()) {
                         if (player.isUsingItem()) {
-                            if (!entity.hurtMarked) {
+                            if (!(entity.hurtMarked)) {
                                 if (serverLevel1.isNight()) {
                                     serverLevel2.setDayTime(1000);
                                 } else if (serverLevel1.isDay()) {

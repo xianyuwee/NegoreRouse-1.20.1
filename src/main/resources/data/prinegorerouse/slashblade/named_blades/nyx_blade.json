@@ -21,7 +21,7 @@
   "properties": {
     "attack_base": 25.0,
     "max_damage": 50,
-    "slash_art": "slashblade:sakura_end",
+    "slash_art": "prinegorerouse:divine_cross_sa",
     "special_effects": [
       "prinegorerouse:phantom",
       "prinegorerouse:oracle"

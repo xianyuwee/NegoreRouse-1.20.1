@@ -17,7 +17,7 @@
   "properties": {
     "attack_base": 24.0,
     "max_damage": 50,
-    "slash_art": "slashblade:sakura_end",
+    "slash_art": "prinegorerouse:magnetic_storm_sword",
     "special_effects": [
       "prinegorerouse:clear"
     ],

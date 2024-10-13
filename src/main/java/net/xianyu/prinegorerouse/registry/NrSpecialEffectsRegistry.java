@@ -16,7 +16,6 @@ public class NrSpecialEffectsRegistry {
     public static final RegistryObject<SpecialEffect> Fate = SPECIAL_EFFECT.register("fate",net.xianyu.prinegorerouse.specialeffect.Fate::new);
     public static final RegistryObject<SpecialEffect> Empty = SPECIAL_EFFECT.register("empty",net.xianyu.prinegorerouse.specialeffect.Empty::new);
     public static final RegistryObject<SpecialEffect> Phantom = SPECIAL_EFFECT.register("phantom",net.xianyu.prinegorerouse.specialeffect.Phantom::new);
-
     }
 
 

@@ -14,6 +14,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.xianyu.prinegorerouse.prinegorerouse;
+import net.xianyu.prinegorerouse.registry.NrSlashArtRegistry;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
 
 import java.util.List;
@@ -63,7 +64,7 @@ public class NrBladeBuiltInRegistry {
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(46.0F)
                                 .defaultSwordType(List.of(SwordType.BEWITCHED))
-                                .slashArtsType(SlashArtsRegistry.SAKURA_END.getId())
+                                .slashArtsType(NrSlashArtRegistry.ZENITH12TH.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Fate.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())
                                 .maxDamage(100)
@@ -104,7 +105,7 @@ public class NrBladeBuiltInRegistry {
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(24.0F)
                                 .defaultSwordType(List.of(SwordType.BEWITCHED))
-                                .slashArtsType(SlashArtsRegistry.SAKURA_END.getId())
+                                .slashArtsType(NrSlashArtRegistry.STORM_SWORDS.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Clear.getId())
                                 .maxDamage(50)
                                 .build(),
@@ -270,7 +271,7 @@ public class NrBladeBuiltInRegistry {
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(25.0F)
                                 .defaultSwordType(List.of(SwordType.BEWITCHED))
-                                .slashArtsType(SlashArtsRegistry.SAKURA_END.getId())
+                                .slashArtsType(NrSlashArtRegistry.DIVINE_CROSS_SA.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Phantom.getId())
                                 .maxDamage(50)
