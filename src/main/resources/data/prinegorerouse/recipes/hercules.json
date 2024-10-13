@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "Q": {
+      "tag": "forge:ingots/nether_brick"
+    },
+    "W": {
+      "item": "minecraft:blaze_powder"
+    },
+    "D": {
+      "item": "slashblade:proudsoul_tiny"
+    },
+    "X": {
+      "item": "minecraft:netherrack"
+    }
+  },
+  "pattern": [
+    " W ",
+    "XDQ",
+    " W "
+  ],
+  "result":
+  {
+    "item": "prinegorerouse:hercules",
+    "count": 1
+  }
+}

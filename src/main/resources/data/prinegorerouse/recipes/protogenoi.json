@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "Q": {
+      "item": "prinegorerouse:chronos"
+    },
+    "W": {
+      "item": "prinegorerouse:erebus"
+    },
+    "D": {
+      "item": "slashblade:proudsoul_tiny"
+    },
+    "A": {
+      "item": "slashblade:proudsoul"
+    }
+  },
+  "pattern": [
+    " AW",
+    "DQD",
+    "WD "
+  ],
+  "result":
+  {
+    "item": "prinegorerouse:protogenoi",
+    "count": 1
+  }
+}

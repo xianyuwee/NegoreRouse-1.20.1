@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "Q": {
+      "tag": "minecraft:compasses"
+    },
+    "W": {
+      "item": "minecraft:cauldron"
+    },
+    "E": {
+      "tag": "forge:storage_blocks/iron"
+    },
+    "D": {
+      "item": "prinegorerouse:chronos"
+    },
+    "S": {
+      "item": "minecraft:hopper"
+    },
+    "A": {
+      "item": "minecraft:blaze_powder"
+    },
+    "Z": {
+      "tag": "forge:glass_panes"
+    },
+    "X": {
+      "item": "minecraft:tnt"
+    }
+  },
+  "pattern": [
+    "XZQ",
+    "ADE",
+    "S W"
+  ],
+  "result":
+  {
+    "item": "prinegorerouse:chaos",
+    "count": 1
+  }
+}

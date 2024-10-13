@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "Q": {
+      "tag": "forge:ingots/gold"
+    },
+    "W": {
+      "item": "minecraft:golden_pickaxe"
+    },
+    "E": {
+      "tag": "forge:storage_blocks/redstone"
+    },
+    "D": {
+      "item": "slashblade:proudsoul_tiny"
+    },
+    "S": {
+      "item": "minecraft:ender_eye"
+    },
+    "A": {
+      "item": "slashblade:proudsoul"
+    },
+    "Z": {
+      "tag": "forge:storage_blocks/emerald"
+    },
+    "X": {
+      "tag": "forge:storage_blocks/coal"
+    },
+    "C": {
+      "tag": "forge:storage_blocks/iron"
+    }
+  },
+  "pattern": [
+    "ZAQ",
+    "XSW",
+    "CDE"
+  ],
+  "result":
+  {
+    "item": "prinegorerouse:chronos",
+    "count": 1
+  }
+}

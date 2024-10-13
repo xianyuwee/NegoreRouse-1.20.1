@@ -1,0 +1,37 @@
+{
+    "enchantments":[
+      {
+        "id": "minecraft:unbreaking",
+        "lvl": 3
+      },
+      {
+        "id": "minecraft:sharpness",
+        "lvl": 5
+      },
+      {
+        "id": "minecraft:power",
+        "lvl": 10
+      },
+      {
+        "id": "minecraft:smite",
+        "lvl": 5
+      }
+    ],
+    "name": "prinegorerouse:chronos_blade",
+    "properties": {
+      "attack_base": 25.0,
+      "max_damage": 50,
+      "slash_art": "slashblade:sakura_end",
+      "special_effects": [
+        "prinegorerouse:oracle"
+      ],
+      "sword_type": [
+        "bewitched"
+      ]
+    },
+    "render": {
+      "model": "prinegorerouse:model/named/custom/chronos/chronos.obj",
+      "texture": "prinegorerouse:model/named/custom/chronos/chronos.png",
+      "summon_sword_color": 132112255
+    }
+  }

@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "Q": {
+      "item": "minecraft:diamond_hoe"
+    },
+    "W": {
+      "item": "prinegorerouse:protogenoi"
+    },
+    "E": {
+      "item": "minecraft:glowstone"
+    },
+    "D": {
+      "tag": "forge:storage_block/lapis"
+    },
+    "S": {
+      "tag": "forge:nether_stars"
+    },
+    "A": {
+      "item": "minecraft:obsidian"
+    },
+    "Z": {
+      "item": "minecraft:redstone"
+    },
+    "X": {
+      "item": "prinegorerouse:chronos"
+    },
+    "C": {
+      "item": "minecraft:blaze_powder"
+    }
+  },
+  "pattern": [
+    "ZAQ",
+    "XSW",
+    "CDE"
+  ],
+  "result":
+  {
+    "item": "prinegorerouse:fatestar",
+    "count": 1
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "item.prinegorerouse.chronos": "神残魂 柯罗诺斯",
+  "item.prinegorerouse.erebus": "神残魂 厄瑞波斯",
+  "item.prinegorerouse.protogenoi": "凝聚神魂 普洛托革诺伊",
+  "item.prinegorerouse.chaos": "神残魂 卡俄斯",
+  "item.prinegorerouse.aritemis": "神残魂 阿尔忒弥斯",
+  "item.prinegorerouse.fatestar": "命运之星",
+  "item.prinegorerouse.hercules": "神残魂 海格力斯",
+  "item.prinegorerouse.tartarus": "神残魂 塔尔塔洛斯",
+
+  "item.prinegorerouse.chronos_blade": "伊恩「永恒时光之轮·永劫根源魔枪」",
+  "item.prinegorerouse.erebus_blade": "厄瑞波斯「永黯沉寂」",
+  "item.prinegorerouse.nier_blade": "尼尔「永恒旋转之枪」",
+  "item.prinegorerouse.protogenoi_blade": "普洛托革诺伊「始源」",
+  "item.prinegorerouse.chronosn_blade": "柯罗诺斯「永境之主」",
+  "item.prinegorerouse.aeon_blade": "§6柯罗诺斯「万古琨矇」",
+  "item.prinegorerouse.ananke_blade": "§4宿命变星·阿南刻§6「天数裁定」",
+  "item.prinegorerouse.aritemis_blade": "§4阿尔忒弥斯§1「影月」",
+  "item.prinegorerouse.chaos_blade": "§4卡俄斯§0「溟濛万象」",
+  "item.prinegorerouse.chronossy_blade": "§4柯罗诺斯§k「始源之枪」",
+  "item.prinegorerouse.deligun_blade": "§4德雷格兰§9「圣契」",
+  "item.prinegorerouse.tartarus_blade": "§4塔耳塔洛斯§4「狱渊之锁」",
+  "item.prinegorerouse.nyx_blade": "§4聚变之星·倪克斯§f「辰宿瞬变」",
+  "item.prinegorerouse.hercules_blade": "§4海格力斯§e「闪耀之星」",
+  "item.prinegorerouse.antauge_blade": "§4安托则斯§d「冥光万法」",
+
+
+  "se.prinegorerouse.oracle": "§a§l神谕",
+  "se.prinegorerouse.reverse_power": "§7§l负向神力",
+  "se.prinegorerouse.absolute_power": "§a§l绝对神力",
+  "se.prinegorerouse.back": "§c§l回溯",
+  "se.prinegorerouse.eternity": "§6永恒曈曚",
+  "se.prinegorerouse.clear": "§9清耀",
+  "se.prinegorerouse.porgatory": "§b§l禁锢",
+  "se.prinegorerouse.fate": "§6炯恻",
+  "se.prinegorerouse.empty": "§7§l「虚诞」",
+  "se.prinegorerouse.phantom": "§5幻影",
+  "se.slashblade_addon:burst_drive" : "爆裂性",
+
+
+
+  "creativetab.prinegorerouse": "尼格洛茨·诸神帝裔"
+
+}

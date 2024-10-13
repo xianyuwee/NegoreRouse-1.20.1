@@ -1,0 +1,32 @@
+{
+  "type": "slashblade:shaped_blade",
+  "blade": "prinegorerouse:hercules_blade",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade",
+      "request": {
+        "proud_soul": 2000
+      }
+    },
+    "M": {
+      "item": "minecraft:lava_bucket"
+    },
+    "S": {
+      "item": "prinegorerouse:hercules"
+    },
+    "W": {
+      "item": "slashblade:proudsoul"
+    }
+  },
+  "pattern": [
+    " SW",
+    "SBS",
+    "MS "
+  ],
+  "result": {
+    "item": "slashblade:slashblade"
+  },
+  "show_notification": true
+}

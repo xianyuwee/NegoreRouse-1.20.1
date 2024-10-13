@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "Q": {
+      "tag": "forge:fences/nether_brick"
+    },
+    "W": {
+      "item": "minecraft:obsidian"
+    },
+    "D": {
+      "item": "slashblade:proudsoul_tiny"
+    },
+    "A": {
+      "item": "slashblade:proudsoul"
+    },
+    "X": {
+      "item": "minecraft:netherrack"
+    }
+  },
+  "pattern": [
+    " A ",
+    "XQW",
+    " D "
+  ],
+  "result":
+  {
+    "item": "prinegorerouse:erebus",
+    "count": 1
+  }
+}

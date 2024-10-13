@@ -1,0 +1,55 @@
+{
+  "enchantments":[
+    {
+     "id":"minecraft:unbreaking",
+     "lvl":10
+    },
+    {
+     "id":"minecraft:shapeness",
+     "lvl":20
+    },
+    {
+     "id":"minecraft:smite",
+     "lvl":8
+    },
+    {
+     "id":"minecraft:looting",
+     "lvl":10
+    },
+    {
+     "id":"minecraft:bane_of_arthropods",
+     "lvl":8
+    },
+    {
+     "id":"minecraft:fortune",
+     "lvl":5
+    },
+    {
+     "id":"minecraft:fire_aspect",
+     "lvl":2
+    },
+    {
+     "id":"minecraft:mending",
+     "lvl":1
+    }
+ ],
+  "name": "prinegorerouse:protogenoi_blade",
+  "properties": {
+    "attack_base": 60.0,
+    "max_damage": 100,
+    "slash_art": "slashblade:sakura_end",
+    "special_effects": [
+      "prinegorerouse:absolute_power",
+      "prinegorerouse:oracle",
+      "prinegorerouse:back"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "render": {
+    "model": "prinegorerouse:model/named/custom/protogenoi/protogenoi.obj",
+    "texture": "prinegorerouse:model/named/custom/protogenoi/protogenoi.png",
+    "summon_sword_color":20832144
+  }
+}

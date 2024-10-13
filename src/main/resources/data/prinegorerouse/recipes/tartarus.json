@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "Q": {
+      "item": "minecraft:lava_bucket"
+    },
+    "W": {
+      "item": "prinegorerouse:erebus"
+    },
+    "D": {
+      "item": "minecraft:soul_sand"
+    },
+    "A": {
+      "item": "minecraft:nether_wart"
+    },
+    "S": {
+      "item": "slashblade:proudsoul_tiny"
+    }
+  },
+  "pattern": [
+    "QWQ",
+    "DSA",
+    "QWQ"
+  ],
+  "result":
+  {
+    "item": "prinegorerouse:tartarus",
+    "count": 1
+  }
+}

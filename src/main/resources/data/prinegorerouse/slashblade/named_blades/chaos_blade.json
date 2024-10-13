@@ -1,0 +1,25 @@
+{
+  "enchantments":[
+    {
+      "id": "minecraft:sharpness",
+      "lvl": 10
+    }
+  ],
+  "name": "prinegorerouse:chaos_blade",
+  "properties": {
+    "attack_base": 51,
+    "max_damage": 50,
+    "slash_art": "slashblade:sakura_end",
+    "special_effects": [
+      "prinegorerouse:oracle"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "render": {
+    "model": "prinegorerouse:model/named/custom/chaos/chaos_blade.obj",
+    "texture": "prinegorerouse:model/named/custom/chaos/chaos_blade.png",
+    "summon_sword_color": 255236139
+  }
+}
