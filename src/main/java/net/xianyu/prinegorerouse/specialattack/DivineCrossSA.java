@@ -41,8 +41,8 @@ public class DivineCrossSA {
 
             Vec3 lookAngle = playerIn.getLookAngle();
 
-            double x_ = acos(lookAngle.x);
-            double z_ = acos(lookAngle.z);
+            double x_ = asin(lookAngle.x);
+            double z_ = asin(lookAngle.z);
 
             Vec3 pos = playerIn.position().add(0.0D, (double) playerIn.getEyeHeight() * 0.75D, 0.0D);
 
@@ -51,19 +51,29 @@ public class DivineCrossSA {
                     .add(lookAngle.scale(centerOffset.z));
 
             playerIn.level().addFreshEntity(driveEx);
-
-            driveEx.setPos(pos.x + cos(x_ + (22.5 * i * PI /180)) * (double) (isRight ? 1:-1),
-                    pos.y,
-                    pos.z + (cos(z_ + (22.5 * i * PI /180))) * (double) (isRight ? 1:-1));
             driveEx.setDamage(damage);
             driveEx.setSpeed(speed);
             driveEx.setDelay(20);
 
-            driveEx.shoot(cos(x_ + (22.5 * i * PI /180)) * (double) (isRight ? 1:-1),
-                    0.0D,
-                    cos(z_ + (22.5 * i * PI /180)) * (double) (isRight ? 1:-1),
-                    driveEx.getSpeed(),
-                    0);
+            if (x_ * z_ >= 0) {
+                driveEx.setPos(pos.x + sin(x_ + (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
+                        pos.y,
+                        pos.z + (sin(z_ + (22.5 * (i-1) * PI /180)) * (double) (isRight ? 1:-1)));
+                driveEx.shoot(sin(x_ + (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
+                        0.0D,
+                        cos(z_ + (22.5 * (i * PI /180)) * (double) (isRight ? 1:-1)),
+                        driveEx.getSpeed(),
+                        0);
+            } else {
+                driveEx.setPos(pos.x - sin(x_ + (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
+                        pos.y,
+                        pos.z - (sin(z_ + (22.5 * (i-1) * PI /180)) * (double) (isRight ? 1:-1)));
+                driveEx.shoot(sin(x_ - (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
+                        0.0D,
+                        sin(z_ - (22.5 * (i * PI /180)) * (double) (isRight ? 1:-1)),
+                        driveEx.getSpeed(),
+                        0);
+            }
             driveEx.setOwner(playerIn);
             driveEx.setRotationRoll(roll);
 

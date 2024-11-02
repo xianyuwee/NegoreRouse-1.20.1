@@ -24,6 +24,7 @@ public class NrComboStateRegistry {
     public static final RegistryObject<ComboState> STORM_SWORDS_END;
     public static final RegistryObject<ComboState> DIVINE_CROSS_SA;
     public static final RegistryObject<ComboState> DIVINE_CROSS_SA_END;
+    public static final RegistryObject<ComboState> BURNING_FIRE_SA;
 
     public NrComboStateRegistry() {
     }

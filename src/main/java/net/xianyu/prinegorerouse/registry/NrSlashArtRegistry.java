@@ -10,6 +10,7 @@ public class NrSlashArtRegistry {
     public static final RegistryObject<SlashArts> ZENITH12TH;
     public static final RegistryObject<SlashArts> STORM_SWORDS;
     public static final RegistryObject<SlashArts> DIVINE_CROSS_SA;
+    public static final RegistryObject<SlashArts> BURNING_FIRE_SA;
 
     public NrSlashArtRegistry(){
     }
@@ -32,6 +33,12 @@ public class NrSlashArtRegistry {
         DIVINE_CROSS_SA = NR_SLASH_ARTS.register("divine_cross_sa", () -> {
             return new SlashArts((e) -> {
                 return NrComboStateRegistry.DIVINE_CROSS_SA.getId();
+            });
+        });
+
+        BURNING_FIRE_SA = NR_SLASH_ARTS.register("burning_fire_sa", () -> {
+            return new SlashArts((e) -> {
+                return NrComboStateRegistry.BURNING_FIRE_SA.getId();
             });
         });
     }
