@@ -18,7 +18,6 @@ public class EntityZenith12thSword extends EntityBlisteringSword {
         super(entityTypeIn, worldIn);
     }
 
-
     public static EntityZenith12thSword createInstance(PlayMessages.SpawnEntity packet, Level worldIn) {
         return new EntityZenith12thSword(NrEntitiesRegistry.Zenith12th_Sword, worldIn);
     }
@@ -32,7 +31,6 @@ public class EntityZenith12thSword extends EntityBlisteringSword {
                 LightningBolt lightningBolt = (LightningBolt) EntityType.LIGHTNING_BOLT.create(this.level());
                 if (lightningBolt != null) {
                     entity.thunderHit((ServerLevel) level, lightningBolt);
-                    lightningBolt.setDamage(0);
                     lightningBolt.setSecondsOnFire(0);
                     lightningBolt.setPos(entity.getEyePosition());
                     lightningBolt.setCause(this.getHitEntity() instanceof ServerPlayer ? (ServerPlayer) this.getHitEntity() : null);

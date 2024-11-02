@@ -81,7 +81,7 @@ public class NrComboStateRegistry {
         })).nextOfTimeout((entity) -> {
             return prinegorerouse.prefix("divine_cross_sa_end");
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
-            AttackManager.doSlash(entityIn, -30.0F, Vec3.ZERO,false, false, 0.1);
+            AttackManager.doSlash(entityIn, -80.0F, Vec3.ZERO,false, false, 0.1);
         }).put(3, (entityIn) -> {
             DivineCrossSA.doSlash(entityIn, 0.0F, 15, Vec3.ZERO, false, true, 20.0, 3.0F);
         }).build()).addHitEffect(StunManager::setStun);

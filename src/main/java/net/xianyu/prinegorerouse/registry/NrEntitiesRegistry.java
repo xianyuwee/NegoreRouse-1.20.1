@@ -62,7 +62,7 @@ public class NrEntitiesRegistry {
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
             EntityType<EntityDrive> entity = DriveEx = Builder
                     .of(EntityDrive::new, MobCategory.MISC)
-                    .sized(3.0F, 3.0F)
+                    .sized(10.0F, 10.0F)
                     .setTrackingRange(4)
                     .setUpdateInterval(20)
                     .setCustomClientFactory(EntityDriveEx::createInstance)
