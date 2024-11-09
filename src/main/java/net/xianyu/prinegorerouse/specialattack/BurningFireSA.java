@@ -1,13 +1,12 @@
 package net.xianyu.prinegorerouse.specialattack;
 
-import mods.flammpfeil.slashblade.SlashBlade;
 import mods.flammpfeil.slashblade.capability.concentrationrank.ConcentrationRankCapabilityProvider;
-import mods.flammpfeil.slashblade.entity.EntityDrive;
 import mods.flammpfeil.slashblade.util.KnockBacks;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.xianyu.prinegorerouse.entity.EntityDriveEx;
+import net.xianyu.prinegorerouse.entity.EntityDrive_5ye;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 import net.xianyu.prinegorerouse.utils.VectorHelper;
 
@@ -34,14 +33,13 @@ public class BurningFireSA{
                 .add(VectorHelper.getVectorForRotation(0, playerIn.getViewYRot(0) + 90).scale(centerOffset.z))
                 .add(lookAngle.scale(centerOffset.z));
 
-        for (int i = 0; i <= count * 5; i++){
-            EntityDrive driveEx = new EntityDrive(SlashBlade.RegistryEvents.Drive, playerIn.level());
+            EntityDrive_5ye driveEx = new EntityDrive_5ye(NrEntitiesRegistry.Drive5_ye, playerIn.level());
             driveEx.setColor(0xFF0000);
             playerIn.level().addFreshEntity(driveEx);
             driveEx.setDamage(damage);
             driveEx.setSpeed(speed);
             driveEx.setPos(pos.x, pos.y, pos.z);
-            driveEx.shoot(lookAngle.x + i, lookAngle.y, lookAngle.z + i, driveEx.getSpeed(), 0);
+            driveEx.shoot(lookAngle.x, lookAngle.y, lookAngle.z, driveEx.getSpeed(), 0);
 
             driveEx.setOwner(playerIn);
             driveEx.setRotationRoll(90.0F);
@@ -56,6 +54,6 @@ public class BurningFireSA{
             if (driveEx.getHitEntity() != null) {
                 driveEx.getHitEntity().setSecondsOnFire(3);
             }
+            player.playSound(SoundEvents.FIRE_EXTINGUISH, 0.2F, 1.0F);
         }
     }
-}

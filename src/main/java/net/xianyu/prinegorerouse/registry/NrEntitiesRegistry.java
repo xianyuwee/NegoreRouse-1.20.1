@@ -14,6 +14,7 @@ import net.xianyu.prinegorerouse.entity.*;
 
 public class NrEntitiesRegistry {
     public static final ResourceLocation BlisteringSwordsLoc = new ResourceLocation("prinegorerouse", classToString(EntityBlisteringSword.class));
+    public static final ResourceLocation Drive_5ye_Loc = new ResourceLocation("prinegorerouse", classToString(EntityDrive_5ye.class));
     public static EntityType<EntityBlisteringSword> BlisteringSword;
     public static EntityType<EntityBlisteringSword> Zenith12th_Sword;
     public static EntityType<EntityBlisteringSword> Storm_Sword;
@@ -32,6 +33,17 @@ public class NrEntitiesRegistry {
                     .setCustomClientFactory(EntityBlisteringSword::createInstance)
                     .build(BlisteringSwordsLoc.toString());
             helper.register(BlisteringSwordsLoc, entity);
+        });
+
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
+            EntityType<EntityDrive_5ye> entity = Drive5_ye = Builder
+                    .of(EntityDrive_5ye::new, MobCategory.MISC)
+                    .sized(10.0F, 10.0F)
+                    .setTrackingRange(4)
+                    .setUpdateInterval(20)
+                    .setCustomClientFactory(EntityDrive_5ye::createInstance)
+                    .build(Drive_5ye_Loc.toString());
+            helper.register(Drive_5ye_Loc, entity);
         });
 
 
@@ -68,16 +80,6 @@ public class NrEntitiesRegistry {
             helper.register(new ResourceLocation("prinegorerouse", "drive_ex"), entity);
         });
 
-        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
-            EntityType<EntityDrive_5ye> entity = Drive5_ye = Builder
-                    .of(EntityDrive_5ye::new, MobCategory.MISC)
-                    .sized(10.0F, 10.0F)
-                    .setTrackingRange(4)
-                    .setUpdateInterval(20)
-                    .setCustomClientFactory(EntityDrive_5ye::createInstance)
-                    .build("drive_5ye");
-            helper.register(new ResourceLocation("prinegorerouse","drive_5ye"),entity);
-        });
     }
 
 

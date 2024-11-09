@@ -1,12 +1,9 @@
 package net.xianyu.prinegorerouse;
 
 import com.mojang.logging.LogUtils;
-import mods.flammpfeil.slashblade.client.renderer.entity.DriveRenderer;
-import mods.flammpfeil.slashblade.client.renderer.entity.SummonedSwordRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -17,7 +14,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
-import net.xianyu.prinegorerouse.client.renderer.entity.Drive_5yeRenderer;
 import net.xianyu.prinegorerouse.item.ModItems;
 import net.xianyu.prinegorerouse.item.PriNRModTabs;
 import net.xianyu.prinegorerouse.registry.NrComboStateRegistry;
@@ -49,8 +45,6 @@ public class prinegorerouse {
         modEventBus.addListener(this::register);
 
         modEventBus.addListener(this::commonSetup);
-
-
 
         MinecraftForge.EVENT_BUS.register(this);
 

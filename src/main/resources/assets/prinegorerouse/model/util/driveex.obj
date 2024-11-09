@@ -1,6 +1,5 @@
-# Blender 4.1.0
-# www.blender.org
-mtllib driveex.mtl
+# This file uses centimeters as units for non-parametric coordinates.
+
 g default
 v 0.000000 0.000000 -1.226943
 v 0.000000 -0.057889 -0.443993

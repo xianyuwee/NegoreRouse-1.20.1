@@ -106,7 +106,7 @@ public class NrComboStateRegistry {
         }).nextOfTimeout((entity) -> {
             return prinegorerouse.prefix("burning_fire_sa_end");
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
-            AttackManager.doSlash(entityIn, -30.0F, Vec3.ZERO, true, false, 0.1F);
+            AttackManager.doSlash(entityIn, -30.0F, Vec3.ZERO, false, false, 0.1F);
         }).put(3,(entityIn) -> {
             BurningFireSA.doSlash(entityIn, Vec3.ZERO,false, 20, 2.0F);
         }).build()).addHitEffect(StunManager::setStun);

@@ -87,7 +87,7 @@ public class EntityDrive_5ye extends EntityAbstractSummonedSword {
 
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(COLOR, 3355647);
+        this.entityData.define(COLOR, 0x3333FF);
         this.entityData.define(FLAGS, 0);
         this.entityData.define(RANK, 0.0F);
         this.entityData.define(LIFETIME, 10.0F);
