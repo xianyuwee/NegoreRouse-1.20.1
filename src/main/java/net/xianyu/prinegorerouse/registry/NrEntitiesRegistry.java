@@ -9,10 +9,7 @@ import net.minecraft.world.entity.EntityType.Builder;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegisterEvent;
-import net.xianyu.prinegorerouse.entity.EntityBlisteringSword;
-import net.xianyu.prinegorerouse.entity.EntityDriveEx;
-import net.xianyu.prinegorerouse.entity.EntityStormSword;
-import net.xianyu.prinegorerouse.entity.EntityZenith12thSword;
+import net.xianyu.prinegorerouse.entity.*;
 
 
 public class NrEntitiesRegistry {
@@ -21,6 +18,7 @@ public class NrEntitiesRegistry {
     public static EntityType<EntityBlisteringSword> Zenith12th_Sword;
     public static EntityType<EntityBlisteringSword> Storm_Sword;
     public static EntityType<EntityDrive> DriveEx;
+    public static EntityType<EntityDrive_5ye> Drive5_ye;
     public NrEntitiesRegistry() {
     }
 
@@ -62,12 +60,23 @@ public class NrEntitiesRegistry {
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
             EntityType<EntityDrive> entity = DriveEx = Builder
                     .of(EntityDrive::new, MobCategory.MISC)
-                    .sized(10.0F, 10.0F)
+                    .sized(10.0F, 3.0F)
                     .setTrackingRange(4)
                     .setUpdateInterval(20)
                     .setCustomClientFactory(EntityDriveEx::createInstance)
                     .build("drive_ex");
             helper.register(new ResourceLocation("prinegorerouse", "drive_ex"), entity);
+        });
+
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
+            EntityType<EntityDrive_5ye> entity = Drive5_ye = Builder
+                    .of(EntityDrive_5ye::new, MobCategory.MISC)
+                    .sized(10.0F, 10.0F)
+                    .setTrackingRange(4)
+                    .setUpdateInterval(20)
+                    .setCustomClientFactory(EntityDrive_5ye::createInstance)
+                    .build("drive_5ye");
+            helper.register(new ResourceLocation("prinegorerouse","drive_5ye"),entity);
         });
     }
 

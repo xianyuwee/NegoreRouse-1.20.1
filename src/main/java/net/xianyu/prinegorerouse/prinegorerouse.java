@@ -17,6 +17,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
+import net.xianyu.prinegorerouse.client.renderer.entity.Drive_5yeRenderer;
 import net.xianyu.prinegorerouse.item.ModItems;
 import net.xianyu.prinegorerouse.item.PriNRModTabs;
 import net.xianyu.prinegorerouse.registry.NrComboStateRegistry;
@@ -49,7 +50,7 @@ public class prinegorerouse {
 
         modEventBus.addListener(this::commonSetup);
 
-        modEventBus.addListener(this::onRegisterRenderers);
+
 
         MinecraftForge.EVENT_BUS.register(this);
 
@@ -101,10 +102,4 @@ public class prinegorerouse {
 
     }
 
-    public void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(NrEntitiesRegistry.BlisteringSword, SummonedSwordRenderer::new);
-        event.registerEntityRenderer(NrEntitiesRegistry.Zenith12th_Sword, SummonedSwordRenderer::new);
-        event.registerEntityRenderer(NrEntitiesRegistry.Storm_Sword, SummonedSwordRenderer::new);
-        event.registerEntityRenderer(NrEntitiesRegistry.DriveEx, DriveRenderer::new);
-    }
 }

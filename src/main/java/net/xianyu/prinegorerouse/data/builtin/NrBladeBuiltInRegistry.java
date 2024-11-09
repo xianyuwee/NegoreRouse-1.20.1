@@ -315,7 +315,7 @@ public class NrBladeBuiltInRegistry {
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(35.0F)
                                 .defaultSwordType(List.of(SwordType.BEWITCHED))
-                                .slashArtsType(SlashArtsRegistry.SAKURA_END.getId())
+                                .slashArtsType(NrSlashArtRegistry.BURNING_FIRE_SA.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Porgatory.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.ReversePower.getId())

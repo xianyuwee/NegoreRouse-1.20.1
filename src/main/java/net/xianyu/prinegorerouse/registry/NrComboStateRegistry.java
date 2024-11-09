@@ -9,6 +9,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 import net.xianyu.prinegorerouse.prinegorerouse;
+import net.xianyu.prinegorerouse.specialattack.BurningFireSA;
 import net.xianyu.prinegorerouse.specialattack.DivineCrossSA;
 import net.xianyu.prinegorerouse.specialattack.MagneticStormSword;
 import net.xianyu.prinegorerouse.specialattack.Zenith12th;
@@ -25,6 +26,7 @@ public class NrComboStateRegistry {
     public static final RegistryObject<ComboState> DIVINE_CROSS_SA;
     public static final RegistryObject<ComboState> DIVINE_CROSS_SA_END;
     public static final RegistryObject<ComboState> BURNING_FIRE_SA;
+    public static final RegistryObject<ComboState> BURNING_FIRE_SA_END;
 
     public NrComboStateRegistry() {
     }
@@ -97,5 +99,27 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(0, AttackManager::playQuickSheathSoundAction).build()).releaseAction(ComboState::releaseActionQuickCharge);
         Objects.requireNonNull(var1002);
         DIVINE_CROSS_SA_END = var1000.register("divine_cross_sa_end", var1002::build);
+
+        var1000 = NR_COMBO_STATE;
+        var1002 = ComboState.Builder.newInstance().startAndEnd(400, 459).priority(50).motionLoc(DefaultResources.ExMotionLocation).next((entity) -> {
+            return SlashBlade.prefix("none");
+        }).nextOfTimeout((entity) -> {
+            return prinegorerouse.prefix("burning_fire_sa_end");
+        }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
+            AttackManager.doSlash(entityIn, -30.0F, Vec3.ZERO, true, false, 0.1F);
+        }).put(3,(entityIn) -> {
+            BurningFireSA.doSlash(entityIn, Vec3.ZERO,false, 20, 2.0F);
+        }).build()).addHitEffect(StunManager::setStun);
+        Objects.requireNonNull(var1002);
+        BURNING_FIRE_SA = var1000.register("burning_fire_sa", var1002::build);
+
+        var1000 = NR_COMBO_STATE;
+        var1002 = ComboState.Builder.newInstance().startAndEnd(459, 488).priority(50).motionLoc(DefaultResources.ExMotionLocation).next((entity) -> {
+            return SlashBlade.prefix("none");
+        }).nextOfTimeout((entity) -> {
+            return SlashBlade.prefix("none");
+        }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(0, AttackManager::playQuickSheathSoundAction).build()).releaseAction(ComboState::releaseActionQuickCharge);
+        Objects.requireNonNull(var1002);
+        BURNING_FIRE_SA_END = var1000.register("burning_fire_sa_end", var1002::build);
     }
 }
