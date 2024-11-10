@@ -23,8 +23,8 @@ import javax.annotation.Nullable;
 @OnlyIn(Dist.CLIENT)
 public class Drive_5yeRenderer<T extends EntityDrive_5ye> extends EntityRenderer<T> {
 
-    private static final ResourceLocation TEXTURE = prinegorerouse.prefix("model/util/ss.png");
-    private static final ResourceLocation MODEL = prinegorerouse.prefix("model/util/driveex.obj");
+    private static final ResourceLocation TEXTURE = prinegorerouse.prefix("model/util/drive_5ye.png");
+    private static final ResourceLocation MODEL = prinegorerouse.prefix("model/util/drive_5ye.obj");
 
     @Nullable
     @Override
@@ -51,7 +51,7 @@ public class Drive_5yeRenderer<T extends EntityDrive_5ye> extends EntityRenderer
             matrixStack.mulPose(Axis.ZP.rotationDegrees(Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot())));
             matrixStack.mulPose(Axis.XP.rotationDegrees(entity.getRotationRoll()));
 
-            float scale = 0.015f;
+            float scale = 15.0f;
             matrixStack.scale(scale, scale, scale);
             matrixStack.mulPose(Axis.YP.rotationDegrees(90.0F));
             int color = entity.getColor() & 0xFFFFFF;
