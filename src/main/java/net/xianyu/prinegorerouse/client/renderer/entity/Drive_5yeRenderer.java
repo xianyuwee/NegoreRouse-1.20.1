@@ -51,7 +51,7 @@ public class Drive_5yeRenderer<T extends EntityDrive_5ye> extends EntityRenderer
             matrixStack.mulPose(Axis.ZP.rotationDegrees(Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot())));
             matrixStack.mulPose(Axis.XP.rotationDegrees(entity.getRotationRoll()));
 
-            float scale = 15.0f;
+            float scale = 0.015f;
             matrixStack.scale(scale, scale, scale);
             matrixStack.mulPose(Axis.YP.rotationDegrees(90.0F));
             int color = entity.getColor() & 0xFFFFFF;
