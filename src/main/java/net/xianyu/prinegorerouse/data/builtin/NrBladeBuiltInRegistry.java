@@ -1,6 +1,5 @@
 package net.xianyu.prinegorerouse.data.builtin;
 
-import cn.mmf.slashblade_addon.registry.SBASpecialEffectsRegistry;
 import mods.flammpfeil.slashblade.item.SwordType;
 import mods.flammpfeil.slashblade.registry.SlashArtsRegistry;
 import mods.flammpfeil.slashblade.registry.slashblade.EnchantmentDefinition;
@@ -234,7 +233,7 @@ public class NrBladeBuiltInRegistry {
                                 .defaultSwordType(List.of(SwordType.BEWITCHED))
                                 .slashArtsType(SlashArtsRegistry.SAKURA_END.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())
-                                .addSpecialEffect(SBASpecialEffectsRegistry.BURST_DRIVE.getId())
+                                .addSpecialEffect(NrSpecialEffectsRegistry.BurstDriveUpdate.getId())
                                 .maxDamage(50)
                                 .build(),
                         List.of(new EnchantmentDefinition(getEnchantmentID(Enchantments.POWER_ARROWS),5),
@@ -315,7 +314,7 @@ public class NrBladeBuiltInRegistry {
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(35.0F)
                                 .defaultSwordType(List.of(SwordType.BEWITCHED))
-                                .slashArtsType(NrSlashArtRegistry.BURNING_FIRE_SA.getId())
+                                .slashArtsType(SlashArtsRegistry.SAKURA_END.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Porgatory.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.ReversePower.getId())

@@ -19,7 +19,7 @@ import java.util.Random;
 @Mod.EventBusSubscriber
 public class Clear extends SpecialEffect {
     public Clear() {
-        super(1, true, true);
+        super(1, false, true);
     }
 
     static Random random = new Random();
