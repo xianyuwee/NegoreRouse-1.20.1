@@ -20,13 +20,13 @@
       "item": "slashblade:proudsoul"
     },
     "Z": {
-      "tag": "forge:storage_blocks/emerald"
+      "tag": "forge:gems/emerald"
     },
     "X": {
-      "tag": "forge:storage_blocks/coal"
+      "item": "minecraft:coal"
     },
     "C": {
-      "tag": "forge:storage_blocks/iron"
+      "tag": "forge:ingots/iron"
     }
   },
   "pattern": [

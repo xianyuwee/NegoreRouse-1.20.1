@@ -233,7 +233,6 @@ public class NrBladeBuiltInRegistry {
                                 .defaultSwordType(List.of(SwordType.BEWITCHED))
                                 .slashArtsType(SlashArtsRegistry.SAKURA_END.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())
-                                .addSpecialEffect(NrSpecialEffectsRegistry.BurstDriveUpdate.getId())
                                 .maxDamage(50)
                                 .build(),
                         List.of(new EnchantmentDefinition(getEnchantmentID(Enchantments.POWER_ARROWS),5),

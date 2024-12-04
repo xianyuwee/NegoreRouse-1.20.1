@@ -27,8 +27,7 @@
     "max_damage": 50,
     "slash_art": "slashblade:sakura_end",
     "special_effects": [
-      "prinegorerouse:oracle",
-      "prinegorerouse:burstdrive_update"
+      "prinegorerouse:oracle"
     ],
     "sword_type": [
       "bewitched"
