@@ -30,3 +30,4 @@ public class DataGen {
                 new DatapackBuiltinEntriesProvider(packOutput, lookupProvider, NrBladeBuilder, Set.of(prinegorerouse.MOD_ID)));
     }
 }
+    

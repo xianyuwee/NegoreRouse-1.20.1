@@ -1,5 +1,6 @@
 package net.xianyu.prinegorerouse.data.builtin;
 
+import mods.flammpfeil.slashblade.client.renderer.CarryType;
 import mods.flammpfeil.slashblade.item.SwordType;
 import mods.flammpfeil.slashblade.registry.SlashArtsRegistry;
 import mods.flammpfeil.slashblade.registry.slashblade.EnchantmentDefinition;
@@ -15,6 +16,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.xianyu.prinegorerouse.prinegorerouse;
 import net.xianyu.prinegorerouse.registry.NrSlashArtRegistry;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
+import org.lwjgl.system.SharedLibrary;
 
 import java.util.List;
 
@@ -36,6 +38,12 @@ public class NrBladeBuiltInRegistry {
     public static final ResourceKey<SlashBladeDefinition> PROTOGENOI_BLADE = register("protogenoi_blade");
     public static final ResourceKey<SlashBladeDefinition> TARTARUS_BLADE = register("tartarus_blade");
 
+    //NINJA: 右上到左下斜插
+    //DEFAULT/PS02: 横插
+    //RNINJA: 左上到右下斜插
+    //KATANA: 腰插(刀刃向上)
+    //NONE: ?
+
     public static void registerAll(BootstapContext<SlashBladeDefinition> bootstrap) {
         bootstrap.register(AEON_BLADE,
                 new SlashBladeDefinition(prinegorerouse.prefix("aeon_blade"),
@@ -43,6 +51,7 @@ public class NrBladeBuiltInRegistry {
                         .effectColor(25518515)
                         .textureName(prinegorerouse.prefix("model/named/custom/aeon/aeon.png"))
                         .modelName(prinegorerouse.prefix("model/named/custom/aeon/aeon.obj"))
+                        .standbyRenderType(CarryType.NONE)
                         .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(300.0F)
@@ -59,6 +68,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(25518515)
                                 .textureName(prinegorerouse.prefix("model/named/custom/ananke/ananke.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/ananke/ananke_blade.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(46.0F)
@@ -80,6 +90,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(245222179)
                                 .textureName(prinegorerouse.prefix("model/named/custom/antauge/antauge.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/antauge/antauge.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(45.0F)
@@ -100,6 +111,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(32178170)
                                 .textureName(prinegorerouse.prefix("model/named/custom/aritemis/artemis_blade.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/aritemis/artemis_blade.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(24.0F)
@@ -118,6 +130,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(255236139)
                                 .textureName(prinegorerouse.prefix("model/named/custom/chaos/chaos_blade.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/chaos/chaos_blade.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(51.0F)
@@ -134,6 +147,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(132112255)
                                 .textureName(prinegorerouse.prefix("model/named/custom/chronos/chronos.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/chronos/chronos.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(25.0F)
@@ -153,6 +167,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(10690205)
                                 .textureName(prinegorerouse.prefix("model/named/custom/chronosn/chronosn.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/chronosn/chronosn.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(35.0F)
@@ -174,6 +189,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(100149237)
                                 .textureName(prinegorerouse.prefix("model/named/custom/chronossy/chronossy.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/chronossy/chronossy.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(0.0F)
@@ -190,6 +206,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(30144255)
                                 .textureName(prinegorerouse.prefix("model/named/custom/deligun/deligun.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/deligun/deligun.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(37.0F)
@@ -206,6 +223,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(10690205)
                                 .textureName(prinegorerouse.prefix("model/named/custom/erebus/erebus.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/erebus/erebus.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(35.0F)
@@ -227,6 +245,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(2059292)
                                 .textureName(prinegorerouse.prefix("model/named/custom/hercules/hercules_blade.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/hercules/hercules_blade.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(27.0F)
@@ -247,6 +266,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(132112255)
                                 .textureName(prinegorerouse.prefix("model/named/custom/nier/nier.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/nier/nier.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(19.0F)
@@ -265,6 +285,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(21816532)
                                 .textureName(prinegorerouse.prefix("model/named/custom/nyx/nyx.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/nyx/nyx.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(25.0F)
@@ -285,6 +306,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(20832144)
                                 .textureName(prinegorerouse.prefix("model/named/custom/protogenoi/protogenoi.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/protogenoi/protogenoi.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(60.0F)
@@ -309,6 +331,7 @@ public class NrBladeBuiltInRegistry {
                                 .effectColor(2384444)
                                 .textureName(prinegorerouse.prefix("model/named/custom/tartarus/tartarus.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/tartarus/tartarus.obj"))
+                                .standbyRenderType(CarryType.NONE)
                                 .build(),
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(35.0F)
