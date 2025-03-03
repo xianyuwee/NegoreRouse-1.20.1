@@ -289,19 +289,19 @@ public class NrBladeBuiltInRegistry {
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(60.0F)
                                 .defaultSwordType(List.of(SwordType.BEWITCHED))
-                                .slashArtsType(SlashArtsRegistry.SAKURA_END.getId())
+                                .slashArtsType(NrSlashArtRegistry.ZENITH12TH.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.AbsolutePower.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Back.getId())
+                                .addSpecialEffect(NrSpecialEffectsRegistry.Fate.getId())
                                 .maxDamage(100)
                                 .build(),
-                        List.of(new EnchantmentDefinition(getEnchantmentID(Enchantments.SHARPNESS),20),
+                        List.of(new EnchantmentDefinition(getEnchantmentID(Enchantments.SHARPNESS),10),
                                 new EnchantmentDefinition(getEnchantmentID(Enchantments.UNBREAKING),10),
                                 new EnchantmentDefinition(getEnchantmentID(Enchantments.MOB_LOOTING),10),
                                 new EnchantmentDefinition(getEnchantmentID(Enchantments.FIRE_ASPECT),2),
                                 new EnchantmentDefinition(getEnchantmentID(Enchantments.BLOCK_FORTUNE),8),
-                                new EnchantmentDefinition(getEnchantmentID(Enchantments.BANE_OF_ARTHROPODS),8),
-                                new EnchantmentDefinition(getEnchantmentID(Enchantments.MENDING),1))));
+                                new EnchantmentDefinition(getEnchantmentID(Enchantments.BANE_OF_ARTHROPODS),8))));
 
         bootstrap.register(TARTARUS_BLADE,
                 new SlashBladeDefinition(prinegorerouse.prefix("tartarus_blade"),

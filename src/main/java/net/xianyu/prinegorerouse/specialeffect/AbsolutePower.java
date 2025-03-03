@@ -1,11 +1,14 @@
 package net.xianyu.prinegorerouse.specialeffect;
 
+import mods.flammpfeil.slashblade.SlashBlade;
 import mods.flammpfeil.slashblade.capability.slashblade.ISlashBladeState;
+import mods.flammpfeil.slashblade.data.builtin.SlashBladeBuiltInRegistry;
 import mods.flammpfeil.slashblade.event.SlashBladeEvent;
 import mods.flammpfeil.slashblade.registry.specialeffects.SpecialEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
@@ -24,6 +27,9 @@ public class AbsolutePower extends SpecialEffect {
             if (!(event.getEntity() instanceof Player))
                 return;
             Player player = (Player) event.getEntity();
+            if (!(event.isSelected())) {
+                return;
+            }
             int level = player.experienceLevel;
             if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.AbsolutePower.get(), level)) {
                 if (player.isUsingItem()) {

@@ -5,7 +5,7 @@
      "lvl":10
     },
     {
-     "id":"minecraft:shapeness",
+     "id":"minecraft:sharpness",
      "lvl":20
     },
     {
@@ -29,19 +29,20 @@
      "lvl":2
     },
     {
-     "id":"minecraft:mending",
-     "lvl":1
+      "id": "minecraft:mending",
+      "lvl": 1
     }
  ],
   "name": "prinegorerouse:protogenoi_blade",
   "properties": {
     "attack_base": 60.0,
     "max_damage": 100,
-    "slash_art": "slashblade:sakura_end",
+    "slash_art": "prinegorerouse:zenith12th",
     "special_effects": [
       "prinegorerouse:absolute_power",
       "prinegorerouse:oracle",
-      "prinegorerouse:back"
+      "prinegorerouse:back",
+      "prinegorerouse:fate"
     ],
     "sword_type": [
       "bewitched"

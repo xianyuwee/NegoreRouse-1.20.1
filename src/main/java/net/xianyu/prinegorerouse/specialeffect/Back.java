@@ -25,7 +25,11 @@ public class Back extends SpecialEffect{
     public static void onSlashBladeUpdate(SlashBladeEvent.UpdateEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
         if (state.hasSpecialEffect(NrSpecialEffectsRegistry.Back.getId())) {
+            if (!(event.getEntity() instanceof Player))
+                return;
             Player player = (Player) event.getEntity();
+            if (!(event.isSelected()))
+                return;
             int level = player.experienceLevel;
             if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.Back.get(), level)) {
                 if(player.isUsingItem()) {
@@ -44,6 +48,8 @@ public class Back extends SpecialEffect{
     public static void onSlashBladeHit(SlashBladeEvent.HitEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
         if(state.hasSpecialEffect(NrSpecialEffectsRegistry.Back.getId())) {
+            if (!(event.getUser() instanceof Player))
+                return;
             Player player = (Player) event.getUser();
             int level = player.experienceLevel;
             if(SpecialEffect.isEffective(NrSpecialEffectsRegistry.Back.get(),level)) {

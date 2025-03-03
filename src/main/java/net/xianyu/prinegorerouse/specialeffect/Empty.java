@@ -3,7 +3,6 @@ package net.xianyu.prinegorerouse.specialeffect;
 import mods.flammpfeil.slashblade.capability.slashblade.ISlashBladeState;
 import mods.flammpfeil.slashblade.event.SlashBladeEvent;
 import mods.flammpfeil.slashblade.registry.specialeffects.SpecialEffect;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +22,8 @@ public class Empty extends SpecialEffect {
     public static void onSlashBladeHit(SlashBladeEvent.HitEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
         if(state.hasSpecialEffect(NrSpecialEffectsRegistry.Empty.getId())) {
+            if (!(event.getUser() instanceof Player))
+                return;
             Player player = (Player) event.getUser();
             int level = player.experienceLevel;
             if(SpecialEffect.isEffective(NrSpecialEffectsRegistry.Empty.get(),level)) {

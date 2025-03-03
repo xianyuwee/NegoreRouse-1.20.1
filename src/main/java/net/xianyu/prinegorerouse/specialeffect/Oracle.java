@@ -21,7 +21,12 @@ public class Oracle extends SpecialEffect {
     public static void onSlashBladeUpdate(SlashBladeEvent.UpdateEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
         if (state.hasSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())) {
+            if (!(event.getEntity() instanceof Player))
+                return;
             Player player = (Player) event.getEntity();
+            if (!(event.isSelected())) {
+                return;
+            }
             int level = player.experienceLevel;
             if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.Oracle.get(), level)) {
                 if (player.isUsingItem()) {
