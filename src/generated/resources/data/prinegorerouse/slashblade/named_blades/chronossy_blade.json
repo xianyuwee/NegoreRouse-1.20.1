@@ -1,0 +1,20 @@
+{
+  "name": "prinegorerouse:chronossy_blade",
+  "properties": {
+    "attack_base": 0.0,
+    "max_damage": 2,
+    "slash_art": "slashblade:sakura_end",
+    "special_effects": [
+      "prinegorerouse:empty"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "render": {
+    "carry_type": "none",
+    "model": "prinegorerouse:model/named/custom/chronossy/chronossy.obj",
+    "summon_sword_color": 100149237,
+    "texture": "prinegorerouse:model/named/custom/chronossy/chronossy.png"
+  }
+}

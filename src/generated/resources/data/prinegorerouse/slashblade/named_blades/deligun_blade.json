@@ -1,0 +1,26 @@
+{
+  "enchantments": [
+    {
+      "id": "minecraft:sharpness",
+      "lvl": 7
+    }
+  ],
+  "name": "prinegorerouse:deligun_blade",
+  "properties": {
+    "attack_base": 37.0,
+    "max_damage": 50,
+    "slash_art": "slashblade:sakura_end",
+    "special_effects": [
+      "prinegorerouse:oracle"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "render": {
+    "carry_type": "none",
+    "model": "prinegorerouse:model/named/custom/deligun/deligun.obj",
+    "summon_sword_color": 30144255,
+    "texture": "prinegorerouse:model/named/custom/deligun/deligun.png"
+  }
+}

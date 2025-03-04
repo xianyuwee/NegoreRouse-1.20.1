@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.xianyu.prinegorerouse.mixins",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "prinegorerouse.refmap.json",
+  "mixins": [
+    "SwordTypeMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

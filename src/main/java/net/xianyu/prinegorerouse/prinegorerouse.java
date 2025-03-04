@@ -28,7 +28,7 @@ public class prinegorerouse {
 
     public static final String MOD_ID = "prinegorerouse";
 
-    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public static ResourceLocation prefix(String path) {
         return new ResourceLocation(MOD_ID,path);

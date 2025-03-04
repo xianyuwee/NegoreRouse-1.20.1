@@ -1,0 +1,43 @@
+{
+  "enchantments": [
+    {
+      "id": "minecraft:power",
+      "lvl": 9
+    },
+    {
+      "id": "minecraft:unbreaking",
+      "lvl": 5
+    },
+    {
+      "id": "minecraft:smite",
+      "lvl": 10
+    },
+    {
+      "id": "minecraft:fire_aspect",
+      "lvl": 3
+    },
+    {
+      "id": "minecraft:knockback",
+      "lvl": 2
+    }
+  ],
+  "name": "prinegorerouse:ananke_blade",
+  "properties": {
+    "attack_base": 46.0,
+    "max_damage": 100,
+    "slash_art": "prinegorerouse:zenith12th",
+    "special_effects": [
+      "prinegorerouse:fate",
+      "prinegorerouse:oracle"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "render": {
+    "carry_type": "none",
+    "model": "prinegorerouse:model/named/custom/ananke/ananke_blade.obj",
+    "summon_sword_color": 25518515,
+    "texture": "prinegorerouse:model/named/custom/ananke/ananke.png"
+  }
+}
