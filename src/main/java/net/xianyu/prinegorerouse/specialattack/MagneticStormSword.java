@@ -40,7 +40,7 @@ public class MagneticStormSword {
                         worldIn.addFreshEntity(ss);
                         ss.setColor(colorB + colorG + colorR + j);
                         ss.setSpeed(speed);
-                        ss.setDamage(8.0D);
+                        ss.setDamage((state.getAttackAmplifier() + state.getBaseAttackModifier()) * 0.15);
                         ss.setOwner(playerIn);
                         ss.setRoll(0.0F);
                         ss.setIsCritical(critical);
@@ -62,7 +62,7 @@ public class MagneticStormSword {
                         worldIn.addFreshEntity(sse);
                         sse.startRiding(playerIn,true);
                         sse.setSpeed(speed);
-                        sse.setDamage(8.0D);
+                        sse.setDamage((state.getAttackAmplifier() + state.getBaseAttackModifier()) * 0.1);
                         sse.setOwner(playerIn);
                         sse.setRoll(0.0F);
                         sse.setIsCritical(critical);
