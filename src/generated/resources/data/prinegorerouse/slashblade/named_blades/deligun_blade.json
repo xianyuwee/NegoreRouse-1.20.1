@@ -18,7 +18,7 @@
     ]
   },
   "render": {
-    "carry_type": "none",
+    "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/deligun/deligun.obj",
     "summon_sword_color": 30144255,
     "texture": "prinegorerouse:model/named/custom/deligun/deligun.png"

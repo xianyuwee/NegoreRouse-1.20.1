@@ -26,7 +26,7 @@
     ]
   },
   "render": {
-    "carry_type": "none",
+    "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/aritemis/artemis_blade.obj",
     "summon_sword_color": 32178170,
     "texture": "prinegorerouse:model/named/custom/aritemis/artemis_blade.png"

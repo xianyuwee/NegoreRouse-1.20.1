@@ -25,7 +25,7 @@
     ]
   },
   "render": {
-    "carry_type": "none",
+    "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/nier/nier.obj",
     "summon_sword_color": 132112255,
     "texture": "prinegorerouse:model/named/custom/nier/nier.png"
