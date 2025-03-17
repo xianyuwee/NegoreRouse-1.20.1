@@ -9,7 +9,7 @@
   "properties": {
     "attack_base": 35.0,
     "max_damage": 50,
-    "slash_art": "slashblade:sakura_end",
+    "slash_art": "prinegorerouse:burning_fire_sa",
     "special_effects": [
       "prinegorerouse:oracle",
       "prinegorerouse:porgatory",

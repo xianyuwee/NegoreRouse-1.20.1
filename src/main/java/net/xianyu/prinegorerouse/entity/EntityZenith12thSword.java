@@ -14,7 +14,7 @@ import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
 public class EntityZenith12thSword extends EntityBlisteringSword {
-    public EntityZenith12thSword(EntityType< ? extends Projectile > entityTypeIn, Level worldIn) {
+    public EntityZenith12thSword(EntityType<? extends Projectile> entityTypeIn, Level worldIn) {
         super(entityTypeIn, worldIn);
     }
 
@@ -32,19 +32,20 @@ public class EntityZenith12thSword extends EntityBlisteringSword {
                 LightningBolt lightningBolt2 = (LightningBolt) EntityType.LIGHTNING_BOLT.create(this.level());
                 if (lightningBolt != null && lightningBolt2 != null) {
                     lightningBolt2.setDamage(0);
-                    lightningBolt2.setSecondsOnFire(0);
-                    lightningBolt2.setPos(entity.getEyePosition());
-                    lightningBolt.setDamage(30);
-                    entity.thunderHit((ServerLevel) level, lightningBolt);
-                    lightningBolt.setSecondsOnFire(0);
-                    lightningBolt.setPos(entity.getEyePosition());
-                    lightningBolt.setCause(this.getHitEntity() instanceof ServerPlayer ? (ServerPlayer) this.getHitEntity() : null);
-                    this.level().addFreshEntity(lightningBolt2);
-                    this.playSound(SoundEvents.LIGHTNING_BOLT_THUNDER, 5.0F, 1.0F);
-                }
-            }
-        }
-        super.onHitEntity(result);
-    }
+                        lightningBolt2.setSecondsOnFire(0);
+                        lightningBolt2.setPos(entity.getEyePosition());
+                        lightningBolt.setDamage(30);
+                        entity.thunderHit((ServerLevel) level, lightningBolt);
+                        lightningBolt.setSecondsOnFire(0);
+                        lightningBolt2.setSecondsOnFire(0);
+                        lightningBolt.setPos(entity.getEyePosition());
+                        lightningBolt.setCause(this.getHitEntity() instanceof ServerPlayer ? (ServerPlayer) this.getHitEntity() : null);
+                        this.level().addFreshEntity(lightningBolt2);
+                        this.playSound(SoundEvents.LIGHTNING_BOLT_THUNDER, 5.0F, 1.0F);
+                    }
 
+                }
+            super.onHitEntity(result);
+        }
+    }
 }

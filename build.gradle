@@ -169,7 +169,7 @@ dependencies {
     //开发环境jei
     implementation fg.deobf("curse.maven:jei-238222:5576551")
     //拔刀剑重锋依赖
-    implementation fg.deobf("curse.maven:slashblade-resharped-1022428:6250353")
+    implementation fg.deobf("curse.maven:slashblade-resharped-1022428:6313956")
     //辅助mod 玉
     implementation fg.deobf("curse.maven:jade-324717:6106101")
     //辅助mod 伤害显示

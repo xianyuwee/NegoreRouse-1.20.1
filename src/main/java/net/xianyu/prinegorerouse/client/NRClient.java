@@ -23,6 +23,7 @@ import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
             event.registerEntityRenderer(NrEntitiesRegistry.Zenith12th_Sword, SummonedSwordRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.Storm_Sword, SummonedSwordRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.DriveEx, DriveRenderer::new);
+            event.registerEntityRenderer(NrEntitiesRegistry.FireDrive, DriveRenderer::new);
 
         }
     }
