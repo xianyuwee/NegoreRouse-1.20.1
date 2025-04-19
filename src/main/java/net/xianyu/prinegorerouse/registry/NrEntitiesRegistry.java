@@ -19,6 +19,7 @@ public class NrEntitiesRegistry {
     public static EntityType<EntityBlisteringSword> Storm_Sword;
     public static EntityType<EntityDrive> DriveEx;
     public static EntityType<EntityDrive> FireDrive;
+    public static EntityType<EntityDrive> ShinyDrive;
     public NrEntitiesRegistry() {
     }
 
@@ -76,6 +77,17 @@ public class NrEntitiesRegistry {
                     .setCustomClientFactory(EntityFireDrive::createInstance)
                     .build("fire_drive");
             helper.register(new ResourceLocation("prinegorerouse", "fire_drive"), entity);
+        });
+
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
+            EntityType<EntityDrive> entity = ShinyDrive = Builder
+                    .of(EntityDrive::new, MobCategory.MISC)
+                    .sized(10.0F, 3.0F)
+                    .setTrackingRange(4)
+                    .setUpdateInterval(20)
+                    .setCustomClientFactory(EntityShinyDrive::createInstance)
+                    .build("shiny_drive");
+            helper.register(new ResourceLocation("prinegorerouse", "shiny_drive"), entity);
         });
 
     }

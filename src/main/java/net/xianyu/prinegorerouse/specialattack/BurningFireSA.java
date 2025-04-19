@@ -39,10 +39,10 @@ public class BurningFireSA {
                     EntityFireDrive driveEx = new EntityFireDrive(NrEntitiesRegistry.FireDrive, world);
                     world.addFreshEntity(driveEx);
                     if (state.getKillCount() >= 100) {
-                        driveEx.setDamage((state.getAttackAmplifier() + state.getBaseAttackModifier()) * 1.1);
+                        driveEx.setDamage(1.1);
                     }
                     else {
-                        driveEx.setDamage((state.getAttackAmplifier() + state.getBaseAttackModifier()) * 0.9);
+                        driveEx.setDamage(0.9);
                     }
 
                     boolean isRight = i % 2 ==0;

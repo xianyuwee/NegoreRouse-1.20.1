@@ -6,6 +6,7 @@ import mods.flammpfeil.slashblade.util.KnockBacks;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
+import net.xianyu.prinegorerouse.config.NRConfig;
 import net.xianyu.prinegorerouse.entity.EntityDriveEx;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 import net.xianyu.prinegorerouse.utils.VectorHelper;
@@ -87,9 +88,9 @@ public class DivineCrossSA {
                         .ifPresent(rank -> driveEx.setRank(rank.getRankLevel(playerIn.level().getGameTime())));
             }
         }
-        if (playerIn.level() instanceof ServerLevel) {
+        if (playerIn.level() instanceof ServerLevel && NRConfig.TIME_CAN_CHANGE.get().equals(true)) {
             ServerLevel serverLevel = (ServerLevel) playerIn.level();
             serverLevel.setDayTime(serverLevel.getDayTime() + 12000);
-        }
+        } else return;
     }
 }

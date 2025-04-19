@@ -9,11 +9,14 @@ import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
+import net.xianyu.prinegorerouse.config.NRConfig;
 import net.xianyu.prinegorerouse.item.ModItems;
 import net.xianyu.prinegorerouse.item.PriNRModTabs;
 import net.xianyu.prinegorerouse.registry.NrComboStateRegistry;
@@ -55,6 +58,8 @@ public class prinegorerouse {
         NrSlashArtRegistry.NR_SLASH_ARTS.register(modEventBus);
 
         NrComboStateRegistry.NR_COMBO_STATE.register(modEventBus);
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, NRConfig.COMMON_CONFIG);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)

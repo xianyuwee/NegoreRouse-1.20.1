@@ -87,7 +87,7 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -80.0F, Vec3.ZERO,false, false, 0.1);
         }).put(3, (entityIn) -> {
-            DivineCrossSA.doSlash(entityIn, 0.0F, 15, Vec3.ZERO, false, true, 20.0, 3.0F);
+            DivineCrossSA.doSlash(entityIn, 0.0F, 15, Vec3.ZERO, false, true, 2.0, 3.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         DIVINE_CROSS_SA = var1000.register("divine_cross_sa", var1002::build);

@@ -29,11 +29,11 @@ public class Zenith12th{
                     EntityZenith12thSword ss = new EntityZenith12thSword(NrEntitiesRegistry.Zenith12th_Sword, worldIn);
                     worldIn.addFreshEntity(ss);
                     if (state.getKillCount() >= 200) {
-                        ss.setDamage((state.getAttackAmplifier() + state.getBaseAttackModifier()) * 1.2);
+                        ss.setDamage(state.getBaseAttackModifier() * 1.2);
                     } else if (state.getKillCount()>=100) {
-                        ss.setDamage((state.getAttackAmplifier() + state.getBaseAttackModifier()) * 0.8);
+                        ss.setDamage(state.getBaseAttackModifier() * 0.8);
                     } else {
-                        ss.setDamage((state.getBaseAttackModifier() + state.getAttackAmplifier()) * 0.5);
+                        ss.setDamage(state.getBaseAttackModifier() * 0.5);
                     }
                     ss.setSpeed(speed);
                     if (state.getTargetEntity(worldIn) != null){

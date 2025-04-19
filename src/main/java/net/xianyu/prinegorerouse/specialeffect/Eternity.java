@@ -4,9 +4,7 @@ package net.xianyu.prinegorerouse.specialeffect;
 import mods.flammpfeil.slashblade.capability.slashblade.ISlashBladeState;
 import mods.flammpfeil.slashblade.event.SlashBladeEvent;
 import mods.flammpfeil.slashblade.registry.specialeffects.SpecialEffect;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
@@ -28,7 +26,7 @@ public class Eternity extends SpecialEffect {
             Player player = (Player) event.getUser();
             int level = player.experienceLevel;
             if(!SpecialEffect.isEffective(NrSpecialEffectsRegistry.Eternity.get(),level)) {
-                event.getUser().setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+                event.getSlashBladeState().setBroken(true);
             }
             else {
                 float hp = event.getTarget().getHealth();

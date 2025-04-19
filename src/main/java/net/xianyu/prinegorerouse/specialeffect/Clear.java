@@ -40,7 +40,7 @@ public class Clear extends SpecialEffect {
                     player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 20, 2));
                 }
             } else {
-                if(player.isUsingItem()) {
+                if(player.isUsingItem() && player.getMainHandItem().getHoverName().equals(event.getBlade().getHoverName())) {
                     player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 100, 2));
                     player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 1));
                 }

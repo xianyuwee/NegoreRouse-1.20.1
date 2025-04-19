@@ -30,12 +30,15 @@ public class ReversePower extends SpecialEffect {
             }
             int level = player.experienceLevel;
             if(SpecialEffect.isEffective((SpecialEffect)NrSpecialEffectsRegistry.ReversePower.get(),level)) {
-                if(player.isUsingItem()){
+                if(player.isUsingItem() && player.getMainHandItem().getHoverName().equals(event.getBlade().getHoverName())){
                     player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 200, 3));
                     player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 1));
                     player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 200, 1));
                     player.addEffect(new MobEffectInstance(MobEffects.UNLUCK,40,5));
                     player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS,40,1));
+                }
+                else if (player.isUsingItem() && player.getOffhandItem().getHoverName().equals(event.getBlade().getHoverName())) {
+                    player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 20, 1));
                 }
             }
         }

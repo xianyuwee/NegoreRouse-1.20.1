@@ -1,6 +1,7 @@
 package net.xianyu.prinegorerouse.entity;
 
 import mods.flammpfeil.slashblade.entity.Projectile;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Explosion;
@@ -21,6 +22,7 @@ public class EntityStormSword extends EntityBlisteringSword{
     protected void onHitEntity(EntityHitResult result) {
         Entity entity = result.getEntity();
         Level level = entity.level();
+        ServerPlayer attacker = (ServerPlayer) this.getOwner();
         if (!level.isClientSide()) {
             Explosion explosion = level.explode(null, entity.getEyePosition().x,
                     entity.getEyePosition().y, entity.getEyePosition().z, 0.1f, true, Level.ExplosionInteraction.NONE);
