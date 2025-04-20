@@ -21,9 +21,9 @@ public class Phantom extends SpecialEffect {
     @SubscribeEvent
     public static void onSlashBladeHit (SlashBladeEvent.HitEvent event){
         ISlashBladeState state = event.getSlashBladeState();
+        Player player = (Player) event.getUser();
+        int level = player.experienceLevel;
         if (state.hasSpecialEffect(NrSpecialEffectsRegistry.Phantom.getId())) {
-            Player player = (Player) event.getUser();
-            int level = player.experienceLevel;
             if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.Phantom.get(), level)) {
                 float maxHealth = event.getTarget().getMaxHealth();
                 float health = event.getTarget().getHealth();

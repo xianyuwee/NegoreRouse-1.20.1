@@ -11,7 +11,7 @@
       "item": "minecraft:glowstone"
     },
     "D": {
-      "tag": "forge:storage_block/lapis"
+      "tag": "forge:storage_blocks/lapis"
     },
     "S": {
       "tag": "forge:nether_stars"

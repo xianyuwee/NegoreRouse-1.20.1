@@ -315,7 +315,6 @@ public class NrBladeBuiltInRegistry {
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.AbsolutePower.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Back.getId())
-                                .addSpecialEffect(NrSpecialEffectsRegistry.Fate.getId())
                                 .maxDamage(100)
                                 .build(),
                         List.of(new EnchantmentDefinition(getEnchantmentID(Enchantments.SHARPNESS),10),

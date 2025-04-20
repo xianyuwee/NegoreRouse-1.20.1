@@ -6,15 +6,12 @@ import mods.flammpfeil.slashblade.item.ItemSlashBlade;
 import mods.flammpfeil.slashblade.registry.specialeffects.SpecialEffect;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.xianyu.prinegorerouse.config.NRConfig;
@@ -34,6 +31,25 @@ public class Oracle extends SpecialEffect {
     }
 
     public static Random random = new Random();
+
+    public static boolean hasSpecialEffects(ItemStack stack, String effect) {
+        CompoundTag tag = stack.getOrCreateTag();
+
+        if (tag.contains("bladeState")) {
+            CompoundTag forgeCaps = tag.getCompound("bladeState");
+
+            if (forgeCaps.contains("SpecialEffects")) {
+                ListTag specialEffects = forgeCaps.getList("SpecialEffects", 8);
+                for (int i = 0; i < specialEffects.size(); i++){
+                    String currentEffect = specialEffects.getString(i);
+                    if (effect.equals(currentEffect)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     @SubscribeEvent
     public static void onSlashBladeUpdate(SlashBladeEvent.UpdateEvent event) {
@@ -57,6 +73,7 @@ public class Oracle extends SpecialEffect {
 
     @SubscribeEvent
     public static void onDoingSlash(SlashBladeEvent.DoSlashEvent event) {
+        ISlashBladeState state = event.getSlashBladeState();
         int num = (int) (Math.random() * 4) + 1;
         float decimal = random.nextFloat();
         Player player = (Player) event.getUser();
@@ -64,20 +81,10 @@ public class Oracle extends SpecialEffect {
         int level = player.experienceLevel;
         ItemStack offhandItem = player.getOffhandItem();
         if (!(offhandItem.getItem() instanceof ItemSlashBlade)) return;
-        CompoundTag nbt = offhandItem.getTag();
+        CompoundTag nbt = offhandItem.getOrCreateTag();
         if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.Oracle.get(), level) && NRConfig.OFFHAND_CAN_ACTIVE.get().equals(true)
                 && nbt != null) {
-            ListTag ses = nbt.getList("SpecialEffects", 8);
-            for (Tag tag : ses) {
-                CompoundTag seEntry = (CompoundTag) tag;
-                String seName = seEntry.getString("Name");
-                int seLevel = seEntry.getInt("Level");
-
-                if (seName.equals(prinegorerouse.MOD_ID + ":oracle")) {
-                    break;
-                }
-            }
-
+            if (!hasSpecialEffects(player.getOffhandItem(), prinegorerouse.MOD_ID+":oracle"))return;
             if (decimal - 0.5F <= 0.000001F) {
                 Vec3 centerOffset = Vec3.ZERO;
                 EntityShinyDrive drive = new EntityShinyDrive(NrEntitiesRegistry.ShinyDrive, level1);
@@ -88,7 +95,7 @@ public class Oracle extends SpecialEffect {
                 pos = pos.add(VectorHelper.getVectorForRotation(0.0F, player.getViewYRot(0)).scale(centerOffset.y))
                         .add(VectorHelper.getVectorForRotation(0, player.getViewYRot(0) + 90).scale(centerOffset.z))
                         .add(lookAngle.scale(centerOffset.z));
-                drive.setDamage(0.01F * player.getMainHandItem().getDamageValue());
+                drive.setDamage(0.05F * state.getBaseAttackModifier());
                 drive.setSpeed(3.0F);
                 drive.setColor(111111111);
                 drive.setPos(pos.x, pos.y, pos.z);
@@ -116,4 +123,6 @@ public class Oracle extends SpecialEffect {
             }
         }
     }
+
+
 }
