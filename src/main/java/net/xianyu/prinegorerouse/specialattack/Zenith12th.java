@@ -6,7 +6,8 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.xianyu.prinegorerouse.entity.EntityZenith12thSword;
+import net.xianyu.prinegorerouse.entity.EntityEnchantedSword;
+import net.xianyu.prinegorerouse.entity.EntityNRBlisteringSword;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
 public class Zenith12th{
@@ -24,40 +25,26 @@ public class Zenith12th{
         if (!playerIn.level().isClientSide()) {
             playerIn.getMainHandItem().getCapability(ItemSlashBlade.BLADESTATE).ifPresent((state) -> {
                 Level worldIn = playerIn.level();
-                    int count = 13 ;
+                int count = 13 ;
+                float pitch = 20F,yaw = 0F;
                 for (int i = 0; i < count; ++i) {
-                    EntityZenith12thSword ss = new EntityZenith12thSword(NrEntitiesRegistry.Zenith12th_Sword, worldIn);
-                    worldIn.addFreshEntity(ss);
+                    EntityEnchantedSword es = new EntityEnchantedSword(NrEntitiesRegistry.Enchanted_Sword, worldIn);
+                    es.setOwner(playerIn);
                     if (state.getKillCount() >= 200) {
-                        ss.setDamage(state.getBaseAttackModifier() * 1.2);
+                        es.setDamage(state.getBaseAttackModifier() * 1.2);
                     } else if (state.getKillCount()>=100) {
-                        ss.setDamage(state.getBaseAttackModifier() * 0.8);
+                        es.setDamage(state.getBaseAttackModifier() * 0.8);
                     } else {
-                        ss.setDamage(state.getBaseAttackModifier() * 0.5);
+                        es.setDamage(state.getBaseAttackModifier() * 0.5);
                     }
-                    ss.setSpeed(speed);
-                    if (state.getTargetEntity(worldIn) != null){
-                        ss.setNoClip(true);
-                    } else {
-                        ss.setNoClip(false);
-                    }
-                    ss.setIsCritical(critical);
-                    ss.setOwner(playerIn);
-                    ss.setColor(16766720);
-                    ss.setRoll(0.0F);
-                    ss.startRiding(playerIn, true);
-                    ss.setDelay(10 + i);
-                    boolean isRight = ss.getDelay() % 2 == 0;
-                    RandomSource random = worldIn.random;
-                    double xOffset = random.nextDouble() * 10 * (double) (isRight ? 1 : -1);
-                    double zOffset = (double) random.nextFloat() * 5;
-                    double yOffset = random.nextFloat() * 10;
-                    if (!(state.getTargetEntity(worldIn) == null)){
-                        ss.setPos(state.getTargetEntity(worldIn).getEyePosition().add(xOffset, yOffset, zOffset));
-                    } else {
-                        ss.setPos(playerIn.getEyePosition().add(xOffset, yOffset, zOffset));
-                    }
-                    ss.setOffset(new Vec3(xOffset, yOffset, zOffset));
+                    es.setSpeed(speed);
+                    es.setNoClip(true);
+                    es.setIsCritical(critical);
+                    es.setColor(16766720);
+                    es.enableSmartTracking(true);
+                    Vec3 offset = new Vec3(playerIn.getEyePosition().x, playerIn.getEyePosition().y, playerIn.getEyePosition().z);
+                    EntityEnchantedSword.spawnSwords(playerIn,worldIn,offset, EntityNRBlisteringSword.SpawnMode.RANDOM,1,
+                            true,yaw,pitch,0,5,es.getDamage(),es.getColor(), false, 20 + i);
                     playerIn.playSound(SoundEvents.ENDER_DRAGON_FLAP, 0.2F,1.45F);
                 }
             });

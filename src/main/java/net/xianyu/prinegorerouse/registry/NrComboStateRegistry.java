@@ -43,7 +43,7 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -50F, Vec3.ZERO, false, false, 2.0F);
         }).put(3, (entityIn) -> {
-            Zenith12th.doSlash(entityIn, false, 10.0F);
+            Zenith12th.doSlash(entityIn, false, 4F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         ZENITH12TH = var1000.register("zenith12th", var1002::build);
@@ -65,7 +65,7 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -30F, Vec3.ZERO, false, false, 2.0F);
         }).put(3, (entityIn) -> {
-            MagneticStormSword.doSlash(entityIn, false, 8.0F);
+            MagneticStormSword.doSlash(entityIn, false, 4.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         STORM_SWORDS = var1000.register("magnetic_storm_sword", var1002::build);

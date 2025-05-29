@@ -169,13 +169,15 @@ dependencies {
     //开发环境jei
     implementation fg.deobf("curse.maven:jei-238222:5576551")
     //拔刀剑重锋依赖
-    implementation fg.deobf("curse.maven:slashblade-resharped-1022428:6313956")
+    implementation fg.deobf("curse.maven:slashblade-resharped-1022428:6548163")
     //辅助mod 玉
     implementation fg.deobf("curse.maven:jade-324717:6106101")
     //辅助mod 伤害显示
     implementation fg.deobf("curse.maven:damage-number-998849:5538112")
     //config
     implementation fg.deobf("curse.maven:yacl-667299:6336646")
+    //测试用女仆
+    implementation fg.deobf("curse.maven:touhou-little-maid-355044:6440955")
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}-common-api:${jei_version}")

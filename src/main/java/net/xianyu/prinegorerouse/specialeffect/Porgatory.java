@@ -14,7 +14,7 @@ import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
 @Mod.EventBusSubscriber
 public class Porgatory extends SpecialEffect {
     public Porgatory() {
-        super(1,true,true);
+        super(1,false,false);
     }
 
     @SubscribeEvent

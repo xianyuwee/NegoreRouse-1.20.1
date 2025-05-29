@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 public class EntityBlisteringSword extends EntityAbstractSummonedSword {
     public static final EntityDataAccessor<Boolean> IT_FIRED;
+    public static final EntityDataAccessor<Boolean> IS_LAUNCHED;
     public static final EntityDataAccessor<Float> SPEED;
     public static final EntityDataAccessor<Vector3f> OFFSET;
     long fire_time = -1L;
@@ -57,6 +58,12 @@ public class EntityBlisteringSword extends EntityAbstractSummonedSword {
     public boolean itFired() {
         return (Boolean)this.getEntityData().get(IT_FIRED);
     }
+
+    public void Launch() {
+        this.getEntityData().set(IS_LAUNCHED, true);
+    }
+
+    public boolean isLaunched() { return (boolean) this.getEntityData().get(IS_LAUNCHED);}
 
     public void setSpeed(float speed) {
         this.getEntityData().set(SPEED, speed);
@@ -200,5 +207,6 @@ public class EntityBlisteringSword extends EntityAbstractSummonedSword {
         IT_FIRED = SynchedEntityData.defineId(EntityBlisteringSword.class, EntityDataSerializers.BOOLEAN);
         SPEED = SynchedEntityData.defineId(EntityBlisteringSword.class, EntityDataSerializers.FLOAT);
         OFFSET = SynchedEntityData.defineId(EntityBlisteringSword.class, EntityDataSerializers.VECTOR3);
+        IS_LAUNCHED = SynchedEntityData.defineId(EntityBlisteringSword.class, EntityDataSerializers.BOOLEAN);
     }
 }

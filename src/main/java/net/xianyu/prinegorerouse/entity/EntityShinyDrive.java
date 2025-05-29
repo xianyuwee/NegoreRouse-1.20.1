@@ -34,7 +34,7 @@ public class EntityShinyDrive extends EntityDrive {
 
     protected void onHitEntity(EntityHitResult result) {
         super.onHitEntity(result);
-        LivingEntity entity = (LivingEntity) result.getEntity();
+        if (!(result.getEntity() instanceof LivingEntity entity)) return;
         if (entity.isAlive()) {
             entity.addEffect(new MobEffectInstance(MobEffects.GLOWING, 100, 2));
         }

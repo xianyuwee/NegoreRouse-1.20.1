@@ -15,7 +15,7 @@ import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
 public class ReversePower extends SpecialEffect {
 
     public ReversePower() {
-        super(35, true, true);
+        super(35, false, false);
     }
 
     @SubscribeEvent

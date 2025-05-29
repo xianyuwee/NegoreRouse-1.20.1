@@ -20,7 +20,7 @@ import java.util.Random;
 public class AbsolutePower extends SpecialEffect {
 
     public AbsolutePower() {
-        super(50, true, true);
+        super(50, false, false);
     }
 
     public static Random random = new Random();

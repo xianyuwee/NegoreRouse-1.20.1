@@ -16,7 +16,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.xianyu.prinegorerouse.prinegorerouse;
 import net.xianyu.prinegorerouse.registry.NrSlashArtRegistry;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
-import org.lwjgl.system.SharedLibrary;
 
 import java.util.List;
 
