@@ -12,11 +12,16 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
 public class EntityEnchantedSword extends EntityNRBlisteringSword {
     public EntityEnchantedSword(EntityType<? extends Projectile> type, Level world) {
         super(type, world);
+    }
+
+    public static EntityEnchantedSword createInstance(PlayMessages.SpawnEntity packet, Level worldIn) {
+        return new EntityEnchantedSword(NrEntitiesRegistry.Enchanted_Sword, worldIn);
     }
 
     @Override

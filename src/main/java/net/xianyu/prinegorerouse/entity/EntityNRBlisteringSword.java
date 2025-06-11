@@ -5,7 +5,6 @@ import mods.flammpfeil.slashblade.entity.EntityAbstractSummonedSword;
 import mods.flammpfeil.slashblade.entity.Projectile;
 
 import mods.flammpfeil.slashblade.util.KnockBacks;
-import mods.flammpfeil.slashblade.util.RayTraceHelper;
 import mods.flammpfeil.slashblade.util.TargetSelector;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -14,16 +13,22 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.boss.EnderDragonPart;
 import net.minecraft.world.entity.monster.Enemy;
-import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 import org.joml.Vector3f;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Stream;
 
 public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
     //数据同步参数（移除TRACKING）
@@ -60,7 +65,7 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
     private Entity lockTarget; // 当前锁定目标
 
     // 新增追踪参数配置
-    protected float trackingRange = 30.0f;
+    protected float trackingRange = 8.0f;
     protected LivingEntity dynamicTarget;
     protected boolean useSmartTracking = true; // 是否启用智能追踪
 
@@ -72,6 +77,14 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
     private int smiteLevel;
     private int sharpnessLevel;
     private int baneLevel;
+
+    // 新增：当前命中的主实体缓存
+    private Entity currentMainTarget = null;
+
+    // 新增：目标搜索冷却机制
+    private static final int SEARCH_COOLDOWN = 5; // 每5tick搜索一次
+    private int searchCooldown = 0;
+    private boolean isDiscarded = false; // 防止重复处理
 
     public EntityNRBlisteringSword(EntityType<? extends Projectile> type, Level world) {
         super(type, world);
@@ -157,12 +170,58 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         this.entityData.set(DIY_PITCH, diyPitch);
     }
 
+    // 新增：通用多部分实体处理
+    private Entity getMainEntity(Entity entity) {
+        // 处理末影龙类多部分实体
+        if (entity instanceof EnderDragonPart part) {
+            return part.getParent();
+        }
+
+        // 处理其他可能的多部分实体
+        if (entity != null) {
+            // 检查实体是否有"parent"字段
+            try {
+                Field parentField = entity.getClass().getDeclaredField("parent");
+                parentField.setAccessible(true);
+                Object parent = ((java.lang.reflect.Field) parentField).get(entity);
+                if (parent instanceof Entity) {
+                    return (Entity) parent;
+                }
+            } catch (NoSuchFieldException e) {
+                // 没有parent字段是正常的
+            } catch (Exception e) {
+                // 忽略其他异常
+            }
+
+            // 检查实体是否有"getParent"方法
+            try {
+                Method getParent = entity.getClass().getMethod("getParent");
+                Object parent = getParent.invoke(entity);
+                if (parent instanceof Entity) {
+                    return (Entity) parent;
+                }
+            } catch (NoSuchMethodException e) {
+                // 没有getParent方法是正常的
+            } catch (Exception e) {
+                // 忽略其他异常
+            }
+        }
+
+        return entity;
+    }
+
     public Optional<Entity> getLockTarget() {
         int targetId = this.entityData.get(LOCK_TARGET_ID);
         if (targetId == -1) {
             return Optional.empty();
         }
         Entity target = this.level().getEntity(targetId);
+
+        // 如果是多部分实体，获取其主实体
+        if (target != null) {
+            Entity mainEntity = getMainEntity(target);
+            return Optional.ofNullable(mainEntity);
+        }
         return Optional.ofNullable(target);
     }
 
@@ -172,6 +231,12 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
 
     @Override
     public void tick() {
+
+        if (isDiscarded) return; // 防止重复处理
+
+        // 重置当前目标缓存
+        currentMainTarget = null;
+
         if (!this.hasInitialized) {
             initializeEntity();
             this.prevPos = this.position();
@@ -183,6 +248,10 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         }
 
         if (!this.itFired()) {
+            if (this.getOwner() == null || !this.getOwner().isAlive()) {
+                this.discard();
+                return;
+            }
             handleDelayPhase();
         } else {
             handleFlyingPhase();
@@ -195,6 +264,10 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         this.setNoGravity(true);
         this.setInvulnerable(true);
         this.delayTicks = this.getDelayTicks();
+        // 新增：提取主手刀附魔
+        if (!this.level().isClientSide) {
+            extractEnchantments();
+        }
         if (this.getOwner() != null) {
             LivingEntity owner = (LivingEntity) this.getOwner();
             if (getDiyYaw() == 0 && getDiyPitch() ==0) {
@@ -343,9 +416,36 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
 
     // 新增智能追踪逻辑
     protected void handleSmartTracking() {
-        acquireAndTrackTarget();
-    }
+        // 1. 优先处理锁定目标
+        Optional<Entity> lockedTarget = getLockTarget().filter(Entity::isAlive);
+        if (lockedTarget.isPresent()) {
+            Entity target = lockedTarget.get();
+            directSteerToTarget(target);
+            if (checkDirectHit(target)) {
+                return; // 命中后直接返回
+            }
+        }
 
+        // 2. 处理动态目标
+        if (dynamicTarget != null) {
+            if (!dynamicTarget.isAlive()) {
+                dynamicTarget = null;
+            } else {
+                directSteerToTarget(dynamicTarget);
+                if (checkDirectHit(dynamicTarget)) {
+                    return; // 命中后直接返回
+                }
+            }
+        }
+
+        // 3. 目标搜索（带冷却机制）
+        if (dynamicTarget == null && searchCooldown <= 0) {
+            searchNearbyTargets();
+            searchCooldown = SEARCH_COOLDOWN;
+        } else {
+            searchCooldown--;
+        }
+    }
 
     protected void handleLegacyTracking() {
         Optional<Entity> targetOpt = getLockTarget();
@@ -357,38 +457,9 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         }
     }
 
-    // 目标获取与追踪（核心逻辑）
-    protected void acquireAndTrackTarget() {
-        // 优先级1：锁定目标
-        Optional<Entity> lockedTarget = getLockTarget().filter(Entity::isAlive);
-        if (lockedTarget.isPresent()) {
-            Entity target = lockedTarget.get();
-            directSteerToTarget(target); // 使用直接追踪
-            checkDirectHit(target);
-            return;
-        }
-
-
-        // 优先级2：射线检测目标
-        if (dynamicTarget != null) {
-            trackDynamicTargetDirect();
-        }
-
-        // 优先级3：动态搜索目标
-        if (dynamicTarget == null || !dynamicTarget.isAlive()) {
-            searchNearbyTargets();
-        }
-    }
-
     protected Vec3 calculateTargetPosition(Entity target) {
         // 默认实现：目标中心点
         return target.position().add(0, target.getBbHeight() * 0.5, 0);
-    }
-
-    // 直接动态目标追踪
-    private void trackDynamicTargetDirect() {
-        directSteerToTarget(dynamicTarget);
-        checkDirectHit(dynamicTarget);
     }
 
     protected void searchNearbyTargets() {
@@ -397,30 +468,106 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
                 getX() + trackingRange, getY() + trackingRange, getZ() + trackingRange
         );
 
-        List<LivingEntity> candidates = level().getEntitiesOfClass(LivingEntity.class, area, e ->
-                e instanceof Enemy &&
-                        e.isAlive() &&
-                        TargetSelector.lockon.test((LivingEntity)getOwner(), e)
-        );
+        // 使用更高效的目标选择算法
+        LivingEntity bestTarget = null;
+        double closestDistSq = Double.MAX_VALUE;
 
-        if (!candidates.isEmpty()) {
-            dynamicTarget = candidates.get(0);
+        for (Entity entity : level().getEntities(this, area)) {
+            if (!(entity instanceof LivingEntity living)) continue;
+            if (!(entity instanceof Enemy)) continue;
+            if (!living.isAlive()) continue;
+            if (isEntityPart(living)) continue;
+            if (getOwner() instanceof LivingEntity owner &&
+                    !TargetSelector.lockon.test(owner, living)) continue;
+
+            double distSq = distanceToSqr(living);
+            if (distSq < closestDistSq) {
+                closestDistSq = distSq;
+                bestTarget = living;
+            }
         }
+
+        dynamicTarget = bestTarget;
     }
 
-    protected void onTargetReached(Entity target) {
-        EntityHitResult hitResult = new EntityHitResult(target);
-        this.onHitEntity(hitResult);
-        this.discard();
+    // 新增：判断是否为部分实体
+    private boolean isEntityPart(Entity entity) {
+        // 末影龙部分
+        if (entity instanceof EnderDragonPart) {
+            return true;
+        }
+        // 其他可能的部分实体
+        String className = entity.getClass().getName().toLowerCase();
+        return className.contains("part") ||
+                className.contains("segment") ||
+                className.contains("section");
     }
 
     protected void onHitEntity(EntityHitResult result) {
         Entity target = result.getEntity();
-        if (target instanceof LivingEntity) {
-            KnockBacks.cancel.action.accept((LivingEntity) target);
-            StunManager.setStun((LivingEntity) target);
+
+        // 获取主实体
+        Entity mainEntity = getMainEntity(target);
+
+        // 如果已经处理过这个主实体，跳过
+        if (currentMainTarget != null && currentMainTarget.equals(mainEntity)) {
+            return;
         }
-        super.onHitEntity(result);
+
+        // 记录当前处理的主实体
+        currentMainTarget = mainEntity;
+
+        // 应用伤害和效果
+        applyHitEffects(mainEntity);
+
+        // 标记已处理，然后丢弃飞剑
+        this.discard();
+    }
+
+
+    // 新增：应用命中效果
+    private void applyHitEffects(Entity mainEntity) {
+        if (mainEntity instanceof LivingEntity livingTarget) {
+            float baseDamage = (float) this.getDamage();
+            float finalDamage = calculateEnchantedDamage(baseDamage, livingTarget);
+
+            // 设置伤害值
+            this.setDamage(finalDamage);
+
+            // 应用击退和眩晕效果
+            if (livingTarget instanceof LivingEntity) {
+                KnockBacks.cancel.action.accept(livingTarget);
+                StunManager.setStun(livingTarget);
+            }
+
+            // 调用父类处理（确保声音、粒子等效果）
+            super.onHitEntity(new EntityHitResult(mainEntity));
+        }
+    }
+
+    // 新增方法：计算附魔增伤
+    private float calculateEnchantedDamage(float baseDamage, Entity target1) {
+        float damage = baseDamage;
+
+        if (target1 instanceof LivingEntity target) {
+            // 获取目标生物类型
+            MobType mobType = target.getMobType();
+
+            // 应用锋利附魔（对所有生物有效）
+            damage += this.sharpnessLevel * 1.25F; // 每级增加1.25点伤害（2.5颗心）
+
+            // 应用特定生物类型增伤（互斥，只取最高值）
+            float typeBonus = 0;
+            if (mobType == MobType.UNDEAD && this.smiteLevel > 0) {
+                typeBonus = this.smiteLevel * 2.5F; // 每级增加2.5点伤害（5颗心）
+            }
+            else if (mobType == MobType.ARTHROPOD && this.baneLevel > 0) {
+                typeBonus = this.baneLevel * 2.5F; // 每级增加2.5点伤害（5颗心）
+            }
+            // 应用类型增伤（与锋利叠加）
+            damage += typeBonus;
+        }
+        return damage;
     }
 
     // 方块命中处理（完全继承父类逻辑）
@@ -430,69 +577,53 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
     }
 
     // 直接命中检测（更精确的碰撞检测）
-    protected void checkDirectHit(Entity target) {
-        // 使用精确的AABB碰撞检测
-        AABB targetBB = target.getBoundingBox().inflate(0.3);
-        AABB swordBB = this.getBoundingBox();
+    protected boolean checkDirectHit(Entity target) {
+        if (isDiscarded) return true; // 已丢弃则不再检测
+        if (isEntityPart(target)) return false;
 
-        if (targetBB.intersects(swordBB)) {
-            // 立即触发命中效果
-            onTargetReached(target);
-            return;
+        Entity mainEntity = getMainEntity(target);
+        if (currentMainTarget != null && currentMainTarget.equals(mainEntity)) {
+            return false; // 已处理过该主实体
         }
 
-        // 额外检查：高速穿透情况
-        Vec3 nextPos = position().add(getDeltaMovement());
-        Optional<Vec3> hitPos = targetBB.clip(position(), nextPos);
+        // 使用更精确的碰撞检测
+        AABB targetBB = mainEntity.getBoundingBox().inflate(0.3);
+        Vec3 currentPos = position();
+        Vec3 nextPos = currentPos.add(getDeltaMovement());
+
+        // 1. 检查当前帧碰撞
+        if (targetBB.intersects(this.getBoundingBox())) {
+            applyHitEffects(mainEntity);
+            discardSafely();
+            return true;
+        }
+
+        // 2. 检查运动轨迹碰撞
+        Optional<Vec3> hitPos = targetBB.clip(currentPos, nextPos);
         if (hitPos.isPresent()) {
-            onTargetReached(target);
+            applyHitEffects(mainEntity);
+            discardSafely();
+            return true;
         }
+
+        return false;
     }
 
-    private Vec3 calculateHitResultPosition() {
-        // 合并锁定目标和射线检测结果
-        Optional<Entity> foundTarget = Stream.of(
-                        Optional.ofNullable(getLockTarget().orElse(null)), // 获取当前锁定目标
-                        RayTraceHelper.rayTrace(
-                                        this.level(),
-                                        this, // 发射者为飞剑自身
-                                        this.getEyePosition(1.0F),
-                                        this.getLookAngle(),
-                                        12.0, // 最大距离
-                                        12.0, // 检测半径
-                                        e -> {
-                                            // 过滤条件：排除发射者、不可攻击目标
-                                            if (e == this.getOwner()) return false;
-                                            if (e instanceof IShootable) {
-                                                return ((IShootable) e).getShooter() != this.getOwner();
-                                            }
-                                            if (e instanceof LivingEntity) {
-                                                return TargetSelector.lockon.test((LivingEntity) this.getOwner(), (LivingEntity) e);
-                                            }
-                                            return true;
-                                        }
-                                ).filter(r -> r.getType() == HitResult.Type.ENTITY)
-                                .map(r -> ((EntityHitResult) r).getEntity())
-                ).filter(Optional::isPresent)
-                .map(Optional::get)
-                .findFirst();
-
-        // 计算最终目标位置
-        return foundTarget.map(e ->
-                new Vec3(e.getX(), e.getY() + e.getEyeHeight() * 0.8, e.getZ())
-        ).orElseGet(() -> {
-            // 无目标时检测方块碰撞点
-            Vec3 start = this.getEyePosition(1.0F);
-            Vec3 end = start.add(this.getLookAngle().scale(40.0));
-            ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this);
-            BlockHitResult blockResult = this.level().clip(context);
-            return blockResult.getLocation();
-        });
+    // 安全丢弃方法（防止重复处理）
+    private void discardSafely() {
+        isDiscarded = true;
+        this.discard();
     }
 
     public static void spawnSwords(LivingEntity owner, Level world, Vec3 centerPos, SpawnMode mode, int count,
                                    boolean change , float diyYaw, float diyPitch, float zj , float k,
                                    double damage, int colorCode, boolean clip ,int delay) {
+
+        // 在生成飞剑时检查所有者是否有效
+        if (owner == null || !owner.isAlive()) {
+            return;
+        }
+
         for (int i = 0; i < count; i++) {
             EntityNRBlisteringSword sword = new EntityNRBlisteringSword(NrEntitiesRegistry.NRBlisteringSword, world);
             if (diyPitch != 0 && diyYaw != 0) {
@@ -511,9 +642,13 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
 
 
             if (mode == SpawnMode.RANDOM) {
-                Vec3 initPos = calculateInitialRandomPos(centerPos);
-                sword.setPos(initPos);
-            } else {
+                // 修改为在5×5×5范围内随机生成
+                double halfSize = 2.5; // 5/2=2.5
+                double x = centerPos.x + (world.random.nextDouble() - 0.5) * 5.0; // [-2.5, 2.5] 范围
+                double y = centerPos.y + world.random.nextDouble() * 5.0; // [0, 5] 范围
+                double z = centerPos.z + (world.random.nextDouble() - 0.5) * 5.0; // [-2.5, 2.5] 范围
+                sword.setPos(x, y, z);
+            } else if(mode == SpawnMode.CIRCLE){
                 double radius = 3.0;
                 double angle = Math.PI * 2 * i / count;
                 Vec3 pos = centerPos.add(
@@ -530,14 +665,6 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
             world.addFreshEntity(sword);
         }
     }
-
-    private static Vec3 calculateInitialRandomPos(Vec3 center) {
-        double radius = 1.5;
-        double angle = Math.PI * 2 * Math.random();
-        return center.add(
-                radius * Math.cos(angle), 0, radius * Math.sin(angle));
-    }
-
 
     // 直接追踪方法（智能/旧版追踪共用）
     protected void directSteerToTarget(Entity target) {
@@ -583,5 +710,22 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         this.yRotO = yaw;
         this.xRotO = pitch;
     }
+
+    private void extractEnchantments() {
+        LivingEntity owner = (LivingEntity) this.getOwner();
+        if (owner == null) return;
+
+        ItemStack mainHand = owner.getMainHandItem();
+        if (mainHand.isEmpty()) return;
+
+        // 获取所有附魔
+        Map<Enchantment, Integer> enchants = EnchantmentHelper.getEnchantments(mainHand);
+
+        // 提取特定附魔等级
+        this.sharpnessLevel = enchants.getOrDefault(Enchantments.SHARPNESS, 0);
+        this.smiteLevel = enchants.getOrDefault(Enchantments.SMITE, 0);
+        this.baneLevel = enchants.getOrDefault(Enchantments.BANE_OF_ARTHROPODS, 0);
+    }
+    //CIRCLE: 环形 RANDOM:随机 CONE:圆锥
     public enum SpawnMode { CIRCLE, RANDOM }
 }

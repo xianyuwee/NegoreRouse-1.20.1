@@ -13,4 +13,5 @@ public interface IShootable {
     double getDamage();
 
     boolean onImpact(Entity target, float damage);
+
 }

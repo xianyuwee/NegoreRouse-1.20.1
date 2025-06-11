@@ -13,12 +13,11 @@ import net.xianyu.prinegorerouse.entity.*;
 
 
 public class NrEntitiesRegistry {
-    public static final ResourceLocation BlisteringSwordsLoc = new ResourceLocation("prinegorerouse", classToString(EntityBlisteringSword.class));
     public static final ResourceLocation NRBlisteringSwordsLoc = new ResourceLocation("prinegorerouse", classToString(EntityNRBlisteringSword.class));
-    public static EntityType<EntityBlisteringSword> BlisteringSword;
     public static EntityType<EntityNRBlisteringSword> NRBlisteringSword;
     public static EntityType<EntityNRBlisteringSword> Storm_Sword;
     public static EntityType<EntityNRBlisteringSword> Enchanted_Sword;
+    public static EntityType<EntityNRBlisteringSword> Countable_Sword;
     public static EntityType<EntityDrive> DriveEx;
     public static EntityType<EntityDrive> FireDrive;
     public static EntityType<EntityDrive> ShinyDrive;
@@ -26,17 +25,6 @@ public class NrEntitiesRegistry {
     }
 
     public static void register(RegisterEvent event) {
-        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
-            EntityType<EntityBlisteringSword> entity = BlisteringSword = Builder
-                    .of(EntityBlisteringSword::new, MobCategory.MISC)
-                    .sized(0.5F, 0.5F)
-                    .setTrackingRange(4)
-                    .setUpdateInterval(20)
-                    .setCustomClientFactory(EntityBlisteringSword::createInstance)
-                    .build(BlisteringSwordsLoc.toString());
-            helper.register(BlisteringSwordsLoc, entity);
-        });
-
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
             EntityType<EntityNRBlisteringSword> entity = NRBlisteringSword = Builder
                     .of(EntityNRBlisteringSword::new, MobCategory.MISC)
@@ -68,6 +56,17 @@ public class NrEntitiesRegistry {
                     .setCustomClientFactory(EntityEnchantedSword::createInstance)
                     .build("enchanted_sword");
             helper.register(new ResourceLocation("prinegorerouse", "enchanted_sword"), entity);
+        });
+
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
+            EntityType<EntityNRBlisteringSword> entity = Countable_Sword = Builder
+                    .of(EntityNRBlisteringSword::new, MobCategory.MISC)
+                    .sized(0.9F, 0.9F)
+                    .setTrackingRange(4)
+                    .setUpdateInterval(20)
+                    .setCustomClientFactory(EntityCountableSwords::createInstance)
+                    .build("countable_sword");
+            helper.register(new ResourceLocation("prinegorerouse", "countable_sword"), entity);
         });
 
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {

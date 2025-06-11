@@ -2,7 +2,6 @@ package net.xianyu.prinegorerouse.specialattack;
 
 import mods.flammpfeil.slashblade.item.ItemSlashBlade;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -26,7 +25,7 @@ public class Zenith12th{
             playerIn.getMainHandItem().getCapability(ItemSlashBlade.BLADESTATE).ifPresent((state) -> {
                 Level worldIn = playerIn.level();
                 int count = 13 ;
-                float pitch = 20F,yaw = 0F;
+                float pitch =0F,yaw = 0F;
                 for (int i = 0; i < count; ++i) {
                     EntityEnchantedSword es = new EntityEnchantedSword(NrEntitiesRegistry.Enchanted_Sword, worldIn);
                     es.setOwner(playerIn);
@@ -44,7 +43,7 @@ public class Zenith12th{
                     es.enableSmartTracking(true);
                     Vec3 offset = new Vec3(playerIn.getEyePosition().x, playerIn.getEyePosition().y, playerIn.getEyePosition().z);
                     EntityEnchantedSword.spawnSwords(playerIn,worldIn,offset, EntityNRBlisteringSword.SpawnMode.RANDOM,1,
-                            true,yaw,pitch,0,5,es.getDamage(),es.getColor(), false, 20 + i);
+                            true,yaw,pitch,0,0,es.getDamage(),es.getColor(), false, 20 + i);
                     playerIn.playSound(SoundEvents.ENDER_DRAGON_FLAP, 0.2F,1.45F);
                 }
             });

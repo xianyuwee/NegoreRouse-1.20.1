@@ -32,6 +32,7 @@ public class EntityShinyDrive extends EntityDrive {
 
     }
 
+    @Override
     protected void onHitEntity(EntityHitResult result) {
         super.onHitEntity(result);
         if (!(result.getEntity() instanceof LivingEntity entity)) return;

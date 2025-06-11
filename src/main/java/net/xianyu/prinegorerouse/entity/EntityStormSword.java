@@ -11,7 +11,14 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class EntityStormSword extends EntityNRBlisteringSword{
+    // 爆炸冷却机制：防止同一实体在同一tick内多次爆炸
+    private static final Set<Entity> explodedEntitiesThisTick = new HashSet<>();
+    private static long lastTickProcessed = -1;
+
     public EntityStormSword(EntityType<? extends Projectile> entityTypeIn, Level worldIn) {
         super(entityTypeIn, worldIn);
     }
@@ -24,9 +31,20 @@ public class EntityStormSword extends EntityNRBlisteringSword{
         Entity entity = result.getEntity();
         Level level = entity.level();
         if (!level.isClientSide()) {
-            Explosion explosion = level.explode(null, entity.getEyePosition().x,
-                    entity.getEyePosition().y, entity.getEyePosition().z, 0.1f, true, Level.ExplosionInteraction.NONE);
-            explosion.explode();
+            long currentTick = level.getGameTime();
+
+            // 每tick重置冷却列表
+            if (currentTick != lastTickProcessed) {
+                explodedEntitiesThisTick.clear();
+                lastTickProcessed = currentTick;
+            }
+            if (!(explodedEntitiesThisTick.contains(entity))) {
+                explodedEntitiesThisTick.add(entity);
+                if (!(entity instanceof LivingEntity)) return;
+                Explosion explosion = level.explode(null, entity.getEyePosition().x,
+                        entity.getEyePosition().y, entity.getEyePosition().z, 0.1f, true, Level.ExplosionInteraction.NONE);
+                explosion.explode();
+            }
         }
         super.onHitEntity(result);
     }

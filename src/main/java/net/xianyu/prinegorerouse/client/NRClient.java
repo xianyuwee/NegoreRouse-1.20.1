@@ -19,14 +19,13 @@ import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
         @SubscribeEvent
         public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-            event.registerEntityRenderer(NrEntitiesRegistry.BlisteringSword, SummonedSwordRenderer::new);
-            event.registerEntityRenderer(NrEntitiesRegistry.Zenith12th_Sword, SummonedSwordRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.Storm_Sword, SummonedSwordRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.Enchanted_Sword, SummonedSwordRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.DriveEx, DriveRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.FireDrive, DriveRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.ShinyDrive, DriveRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.NRBlisteringSword, SummonedSwordRenderer::new);
+            event.registerEntityRenderer(NrEntitiesRegistry.Countable_Sword, SummonedSwordRenderer::new);
         }
     }
 
