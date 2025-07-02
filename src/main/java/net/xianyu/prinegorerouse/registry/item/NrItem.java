@@ -4,10 +4,12 @@ package net.xianyu.prinegorerouse.registry.item;
 import com.google.common.eventbus.Subscribe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegisterEvent;
 
 import static mods.flammpfeil.slashblade.SlashBlade.MODID;
+import static net.xianyu.prinegorerouse.item.ModItems.ITEMS;
 
 
 public class NrItem extends Item {

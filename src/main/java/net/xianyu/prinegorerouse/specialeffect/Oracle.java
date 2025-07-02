@@ -113,7 +113,6 @@ public class Oracle extends SpecialEffect {
                             break;
                     }
 
-
                     player.level().addFreshEntity(drive);
                 } else if (event.getUser() instanceof LivingEntity) {
                     LivingEntity entity = (LivingEntity) event.getUser();
@@ -148,7 +147,6 @@ public class Oracle extends SpecialEffect {
                                     drive.setRotationRoll(10.0F * num);
                                     break;
                             }
-
 
                             entity.level().addFreshEntity(drive);
                         }

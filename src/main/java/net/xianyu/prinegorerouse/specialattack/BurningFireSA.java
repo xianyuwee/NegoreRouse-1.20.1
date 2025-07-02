@@ -25,7 +25,7 @@ public class BurningFireSA {
     }
 
     public static void doSlash(LivingEntity playerIn, float roll, int lifetime, Vec3 centerOffset, boolean critical, boolean clip, KnockBacks knockBacks, float speed) {
-        int colorCode = 255000000;
+        int colorCode = -25536000;
         doSlash(playerIn, roll, lifetime,colorCode, centerOffset, critical, clip, knockBacks, speed);
     }
 
@@ -34,7 +34,26 @@ public class BurningFireSA {
         if (!playerIn.level().isClientSide()) {
             playerIn.getMainHandItem().getCapability(ItemSlashBlade.BLADESTATE).ifPresent((state) -> {
                 Level world = playerIn.level();
-                int count = 3 + (int) (playerIn.getMainHandItem().getEnchantmentLevel(Enchantments.POWER_ARROWS)/2);
+
+                int count;
+                if (playerIn.getMainHandItem().getEnchantmentLevel(Enchantments.POWER_ARROWS) < 3){
+                    count = 3;
+                } else {
+                    count = 5;
+                }
+
+                // 基础爪形展开角度（度数）
+                float baseSpreadAngle = 10.0F;
+
+                // 获取玩家偏航角（水平旋转角度）
+                float yaw = playerIn.getYRot();
+
+                // 计算水平右向量（基于玩家偏航角）
+                Vec3 rightVector = new Vec3(-sin(toRadians(yaw)), 0, cos(toRadians(yaw)));
+
+                // 获取玩家视线方向（用于前进方向）
+                Vec3 lookAngle = playerIn.getLookAngle();
+
                 for (int i = 1; i <= count; i++) {
                     EntityFireDrive driveEx = new EntityFireDrive(NrEntitiesRegistry.FireDrive, world);
                     world.addFreshEntity(driveEx);
@@ -45,39 +64,39 @@ public class BurningFireSA {
                         driveEx.setDamage(0.9);
                     }
 
-                    boolean isRight = i % 2 ==0;
-
-                    Vec3 lookAngle = playerIn.getLookAngle();
-                    double x_ = asin(lookAngle.x);
-                    double z_ = asin(lookAngle.z);
-
+                    // 基础位置（玩家眼睛高度）
                     Vec3 pos = playerIn.position().add(0.0D, (double) playerIn.getEyeHeight() * 0.75D, 0.0D);
 
-                    pos = pos.add(VectorHelper.getVectorForRotation(0.0F, playerIn.getViewYRot(0)).scale(centerOffset.y))
-                            .add(VectorHelper.getVectorForRotation(0, playerIn.getViewYRot(0) + 90).scale(centerOffset.z))
-                            .add(lookAngle.scale(centerOffset.z));
+                    // 计算角度偏移（形成爪形）
+                    float angleOffset = 0;
+
+                    // 计算偏移方向和强度
+                    if (i > 1) {
+                        // 确定偏移方向：偶数向右，奇数向左
+                        float direction = (i % 2 == 0) ? 1 : -1;
+
+                        // 计算偏移强度：每对火球使用相同的偏移量
+                        int pairIndex = i / 2; // 计算属于第几对（从1开始）
+                        angleOffset = direction * baseSpreadAngle * pairIndex;
+                    }
+
+                    // 1. 位置偏移：在水平面上偏移
+                    // 计算水平偏移向量
+                    Vec3 horizontalOffset = rightVector.scale(tan(toRadians(angleOffset)) * centerOffset.z);
+
+                    // 应用位置偏移
+                    pos = pos
+                            .add(lookAngle.scale(centerOffset.z)) // 向前偏移
+                            .add(horizontalOffset); // 水平偏移
+
+                    driveEx.setPos(pos);
+
+                    // 2. 方向偏移：在水平面上旋转
+                    Vec3 directionVec = VectorHelper.rotateVectorAroundY(lookAngle, angleOffset);
+
+                    driveEx.shoot(directionVec.x, directionVec.y, directionVec.z, speed, 0.0F);
 
                     driveEx.setSpeed(speed);
-
-                    if (x_ * z_ >= 0) {
-                        driveEx.setPos(pos.x + sin(x_ + (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
-                                pos.y,
-                                pos.z + (sin(z_ + (22.5 * (i-1) * PI /180)) * (double) (isRight ? 1:-1)));
-                        driveEx.shoot(sin(x_ + (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
-                                0.0D,
-                                cos(z_ + (22.5 * (i * PI /180)) * (double) (isRight ? 1:-1)),
-                                driveEx.getSpeed(),
-                                0);
-                    } else {
-                        driveEx.setPos(pos.x - sin(x_ + (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
-                                pos.y,
-                                pos.z - (sin(z_ + (22.5 * (i-1) * PI /180)) * (double) (isRight ? 1:-1)));
-                        driveEx.shoot(sin(x_ - (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
-                                0.0D,
-                                sin(z_ - (22.5 * (i * PI /180)) * (double) (isRight ? 1:-1)),
-                                driveEx.getSpeed(),
-                                0);
-                    }
 
                     driveEx.setOwner(playerIn);
                     driveEx.setDelay(20);
@@ -92,13 +111,11 @@ public class BurningFireSA {
                         playerIn.getCapability(ConcentrationRankCapabilityProvider.RANK_POINT)
                                 .ifPresent(rank -> driveEx.setRank(rank.getRankLevel(playerIn.level().getGameTime())));
                     }
-
-
-
                 }
             });
         }
     }
+
     private static ResourceLocation getEnchantmentID(Enchantment enchantment) {
         return ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
     }

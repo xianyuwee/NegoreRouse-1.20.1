@@ -5,8 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "prinegorerouse.refmap.json",
   "mixins": [
-    "SwordTypeMixin",
-    "EntityDriveMixin"
+    "SwordTypeMixin"
   ],
   "client": [
   ],

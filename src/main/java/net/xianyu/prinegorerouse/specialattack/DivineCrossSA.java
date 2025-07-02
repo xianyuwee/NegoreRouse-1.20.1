@@ -32,16 +32,10 @@ public class DivineCrossSA {
                                       boolean critical, boolean clip, double damage, KnockBacks knockback, float speed) {
         if (playerIn.level().isClientSide()) return;
 
-        int count = 16;
-
-        for (int i = 0; i <= count; i += 1 ) {
-            EntityDriveEx driveEx = new EntityDriveEx(NrEntitiesRegistry.DriveEx, playerIn.level());
-            boolean isRight = i % 2 ==0;
+        EntityDriveEx driveEx = new EntityDriveEx(NrEntitiesRegistry.DriveEx, playerIn.level());
 
             Vec3 lookAngle = playerIn.getLookAngle();
 
-            double x_ = asin(lookAngle.x);
-            double z_ = asin(lookAngle.z);
 
             Vec3 pos = playerIn.position().add(0.0D, (double) playerIn.getEyeHeight() * 0.75D, 0.0D);
 
@@ -53,28 +47,12 @@ public class DivineCrossSA {
             driveEx.setDamage(damage);
             driveEx.setSpeed(speed);
             driveEx.setDelay(20);
+            driveEx.shoot(lookAngle.x,lookAngle.y,lookAngle.z,driveEx.getSpeed(), 0.0F);
 
-            if (x_ * z_ >= 0) {
-                driveEx.setPos(pos.x + sin(x_ + (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
-                        pos.y,
-                        pos.z + (sin(z_ + (22.5 * (i-1) * PI /180)) * (double) (isRight ? 1:-1)));
-                driveEx.shoot(sin(x_ + (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
-                        0.0D,
-                        cos(z_ + (22.5 * (i * PI /180)) * (double) (isRight ? 1:-1)),
-                        driveEx.getSpeed(),
-                        0);
-            } else {
-                driveEx.setPos(pos.x - sin(x_ + (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
-                        pos.y,
-                        pos.z - (sin(z_ + (22.5 * (i-1) * PI /180)) * (double) (isRight ? 1:-1)));
-                driveEx.shoot(sin(x_ - (22.5 * i * PI /180) * (double) (isRight ? 1:-1)),
-                        0.0D,
-                        sin(z_ - (22.5 * (i * PI /180)) * (double) (isRight ? 1:-1)),
-                        driveEx.getSpeed(),
-                        0);
-            }
+            driveEx.setPos(pos);
+            driveEx.setBaseSize(15.0F);
             driveEx.setOwner(playerIn);
-            driveEx.setRotationRoll(roll);
+            driveEx.setRotationOffset(roll);
 
             driveEx.setDelay(20);
 
@@ -87,7 +65,6 @@ public class DivineCrossSA {
                 playerIn.getCapability(ConcentrationRankCapabilityProvider.RANK_POINT)
                         .ifPresent(rank -> driveEx.setRank(rank.getRankLevel(playerIn.level().getGameTime())));
             }
-        }
         if (playerIn.level() instanceof ServerLevel && NRConfig.TIME_CAN_CHANGE.get().equals(true)) {
             ServerLevel serverLevel = (ServerLevel) playerIn.level();
             serverLevel.setDayTime(serverLevel.getDayTime() + 12000);

@@ -18,7 +18,9 @@ public class NrEntitiesRegistry {
     public static EntityType<EntityNRBlisteringSword> Storm_Sword;
     public static EntityType<EntityNRBlisteringSword> Enchanted_Sword;
     public static EntityType<EntityNRBlisteringSword> Countable_Sword;
-    public static EntityType<EntityDrive> DriveEx;
+    public static EntityType<EntityNRDrive> NRDrive;
+    public static EntityType<EntityNRDrive> DriveEx;
+    public static EntityType<EntityNRDrive> LineDrive;
     public static EntityType<EntityDrive> FireDrive;
     public static EntityType<EntityDrive> ShinyDrive;
     public NrEntitiesRegistry() {
@@ -70,9 +72,9 @@ public class NrEntitiesRegistry {
         });
 
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
-            EntityType<EntityDrive> entity = DriveEx = Builder
-                    .of(EntityDrive::new, MobCategory.MISC)
-                    .sized(10.0F, 3.0F)
+            EntityType<EntityNRDrive> entity = DriveEx = Builder
+                    .of(EntityNRDrive::new, MobCategory.MISC)
+                    .sized(15.0F, 15.0F)
                     .setTrackingRange(4)
                     .setUpdateInterval(20)
                     .setCustomClientFactory(EntityDriveEx::createInstance)
@@ -83,7 +85,7 @@ public class NrEntitiesRegistry {
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
             EntityType<EntityDrive> entity = FireDrive = Builder
                     .of(EntityDrive::new, MobCategory.MISC)
-                    .sized(10.0F, 3.0F)
+                    .sized(3.0F, 5.0F)
                     .setTrackingRange(4)
                     .setUpdateInterval(20)
                     .setCustomClientFactory(EntityFireDrive::createInstance)
@@ -92,14 +94,35 @@ public class NrEntitiesRegistry {
         });
 
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
+            EntityType<EntityNRDrive> entity = LineDrive = Builder
+                    .of(EntityNRDrive::new, MobCategory.MISC)
+                    .sized(3.0F,5.0F)
+                    .setTrackingRange(5)
+                    .setUpdateInterval(20)
+                    .setCustomClientFactory(EntityLineDrive::createInstance)
+                    .build("line_drive");
+            helper.register(new ResourceLocation("prinegorerouse", "line_drive"), entity);
+        });
+
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
             EntityType<EntityDrive> entity = ShinyDrive = Builder
                     .of(EntityDrive::new, MobCategory.MISC)
-                    .sized(10.0F, 3.0F)
+                    .sized(5.0F, 5.0F)
                     .setTrackingRange(4)
                     .setUpdateInterval(20)
                     .setCustomClientFactory(EntityShinyDrive::createInstance)
                     .build("shiny_drive");
             helper.register(new ResourceLocation("prinegorerouse", "shiny_drive"), entity);
+        });
+
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
+            EntityType<EntityNRDrive> entityType = NRDrive = Builder
+                    .of(EntityNRDrive::new, MobCategory.MISC)
+                    .sized(10.0F, 5.0F)
+                    .setTrackingRange(5)
+                    .setCustomClientFactory(EntityNRDrive::createInstance)
+                    .build("NR_drive");
+            helper.register(new ResourceLocation("prinegorerouse", "nr_drive"), entityType);
         });
 
     }

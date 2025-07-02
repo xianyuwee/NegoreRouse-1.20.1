@@ -14,7 +14,7 @@ import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
 import java.util.Random;
 
-public class EntityDriveEx extends EntityDrive {
+public class EntityDriveEx extends EntityNRDrive {
     private static final EntityDataAccessor<Float> ROTATION_YAW;
     private static final EntityDataAccessor<Float> ROTATION_PITCH;
     private static final EntityDataAccessor<String> PARTICLE;

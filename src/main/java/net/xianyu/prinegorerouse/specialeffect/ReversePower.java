@@ -9,6 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.xianyu.prinegorerouse.config.NRConfig;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
 
 @EventBusSubscriber
@@ -34,8 +35,10 @@ public class ReversePower extends SpecialEffect {
                     player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 200, 3));
                     player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 200, 1));
                     player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 200, 1));
-                    player.addEffect(new MobEffectInstance(MobEffects.UNLUCK,40,5));
-                    player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS,40,1));
+                    if (NRConfig.DO_DEBUFF_WORK.get().equals(true)) {
+                        player.addEffect(new MobEffectInstance(MobEffects.UNLUCK,40,5));
+                        player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS,40,1));
+                    }
                 }
                 else if (player.isUsingItem() && player.getOffhandItem().getHoverName().equals(event.getBlade().getHoverName())) {
                     player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 20, 1));

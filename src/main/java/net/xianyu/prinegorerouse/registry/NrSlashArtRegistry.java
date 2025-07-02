@@ -11,6 +11,7 @@ public class NrSlashArtRegistry {
     public static final RegistryObject<SlashArts> STORM_SWORDS;
     public static final RegistryObject<SlashArts> DIVINE_CROSS_SA;
     public static final RegistryObject<SlashArts> BURNING_FIRE_SA;
+    public static final RegistryObject<SlashArts> COSMIC_LINE;
 
     public NrSlashArtRegistry(){
     }
@@ -39,6 +40,12 @@ public class NrSlashArtRegistry {
         BURNING_FIRE_SA = NR_SLASH_ARTS.register("burning_fire_sa", () -> {
             return new SlashArts((e) -> {
                 return NrComboStateRegistry.BURNING_FIRE_SA.getId();
+            });
+        });
+
+        COSMIC_LINE = NR_SLASH_ARTS.register("cosmic_line", () -> {
+            return new SlashArts((e) -> {
+                return NrComboStateRegistry.COSMIC_LINE.getId();
             });
         });
 

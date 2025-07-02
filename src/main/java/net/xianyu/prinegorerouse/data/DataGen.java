@@ -9,6 +9,7 @@ import net.minecraftforge.common.data.DatapackBuiltinEntriesProvider;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.xianyu.prinegorerouse.data.builtin.NRBladeRecipeGen;
 import net.xianyu.prinegorerouse.data.builtin.NrBladeBuiltInRegistry;
 import net.xianyu.prinegorerouse.prinegorerouse;
 
@@ -24,6 +25,7 @@ public class DataGen {
         DataGenerator dataGenerator = event.getGenerator();
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
         PackOutput packOutput = dataGenerator.getPackOutput();
+        dataGenerator.addProvider(event.includeServer(), new NRBladeRecipeGen(packOutput));
         final RegistrySetBuilder NrBladeBuilder = new RegistrySetBuilder().add(SlashBladeDefinition.REGISTRY_KEY,
                 NrBladeBuiltInRegistry::registerAll);
         dataGenerator.addProvider(event.includeServer(),

@@ -29,7 +29,7 @@
   "properties": {
     "attack_base": 60.0,
     "max_damage": 100,
-    "slash_art": "prinegorerouse:zenith12th",
+    "slash_art": "prinegorerouse:cosmic_line",
     "special_effects": [
       "prinegorerouse:oracle",
       "prinegorerouse:absolute_power",

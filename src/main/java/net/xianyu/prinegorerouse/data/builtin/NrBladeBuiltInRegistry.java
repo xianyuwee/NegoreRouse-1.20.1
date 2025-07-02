@@ -310,7 +310,7 @@ public class NrBladeBuiltInRegistry {
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(60.0F)
                                 .defaultSwordType(List.of(SwordType.BEWITCHED))
-                                .slashArtsType(NrSlashArtRegistry.ZENITH12TH.getId())
+                                .slashArtsType(NrSlashArtRegistry.COSMIC_LINE.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.AbsolutePower.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Back.getId())
