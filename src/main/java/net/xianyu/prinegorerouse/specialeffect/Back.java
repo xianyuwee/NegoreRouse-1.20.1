@@ -23,9 +23,8 @@ import net.xianyu.prinegorerouse.utils.DamageTypeHolderUtils;
 
 import java.util.Random;
 
-
 @EventBusSubscriber
-public class Back extends SpecialEffect{
+public class Back extends SpecialEffect {
 
     public Back() {
         super(90, false, false);
@@ -39,7 +38,7 @@ public class Back extends SpecialEffect{
 
             if (forgeCaps.contains("SpecialEffects")) {
                 ListTag specialEffects = forgeCaps.getList("SpecialEffects", 8);
-                for (int i = 0; i < specialEffects.size(); i++){
+                for (int i = 0; i < specialEffects.size(); i++) {
                     String currentEffect = specialEffects.getString(i);
                     if (effect.equals(currentEffect)) {
                         return true;
@@ -61,7 +60,7 @@ public class Back extends SpecialEffect{
                 return;
             int level = player.experienceLevel;
             if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.Back.get(), level)) {
-                if(player.isUsingItem() && player.getMainHandItem().getHoverName().equals(event.getBlade().getHoverName())) {
+                if (player.isUsingItem() && player.getMainHandItem().getHoverName().equals(event.getBlade().getHoverName())) {
                     player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 2));
                     player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 100, 2));
                 }
@@ -71,33 +70,36 @@ public class Back extends SpecialEffect{
 
     static Random random = new Random();
 
-
     @SubscribeEvent
     public static void onSlashBladeHit(SlashBladeEvent.HitEvent event) {
-        ISlashBladeState state = event.getSlashBladeState();
+        // 修复核心：先判断事件触发者是否为Player，非Player直接返回，避免强制转换异常
+        if (!(event.getUser() instanceof Player))
+            return;
+        
         Player player = (Player) event.getUser();
+        ISlashBladeState state = event.getSlashBladeState();
         ItemStack offhandItem = player.getOffhandItem();
-        if(state.hasSpecialEffect(NrSpecialEffectsRegistry.Back.getId())) {
-            if (!(event.getUser() instanceof Player))
-                return;
+
+        if (state.hasSpecialEffect(NrSpecialEffectsRegistry.Back.getId())) {
             Level level1 = player.level();
             int level = player.experienceLevel;
-            if(SpecialEffect.isEffective(NrSpecialEffectsRegistry.Back.get(),level) && player.getMainHandItem().getHoverName().equals(event.getBlade().getHoverName())) {
+            if (SpecialEffect.isEffective(NrSpecialEffectsRegistry.Back.get(), level) && player.getMainHandItem().getHoverName().equals(event.getBlade().getHoverName())) {
                 double decimal = random.nextDouble();
-                if ( decimal-0.4d <= 0.00001) {
+                if (decimal - 0.4d <= 0.00001) {
                     Entity entity = event.getTarget();
-                    entity.hurt(new DamageSource(DamageTypeHolderUtils.getHolder(level1, "out_of_world"),player,player), state.getBaseAttackModifier() * 0.5F);
+                    entity.hurt(new DamageSource(DamageTypeHolderUtils.getHolder(level1, "out_of_world"), player, player), state.getBaseAttackModifier() * 0.5F);
                     int blade_damage = state.getDamage();
                     state.setDamage(blade_damage - 1);
                 }
             }
-        } else if(NRConfig.OFFHAND_CAN_ACTIVE.get().equals(true) && offhandItem.getItem() instanceof ItemSlashBlade) {
+        } else if (NRConfig.OFFHAND_CAN_ACTIVE.get().equals(true) && offhandItem.getItem() instanceof ItemSlashBlade) {
             Level level = player.level();
-            if (!hasSpecialEffects(player.getOffhandItem(), prinegorerouse.MOD_ID+":back"))return;
+            if (!hasSpecialEffects(player.getOffhandItem(), prinegorerouse.MOD_ID + ":back"))
+                return;
             double decimal = random.nextDouble();
-            if ( decimal-0.5d <= 0.00001) {
+            if (decimal - 0.5d <= 0.00001) {
                 Entity entity = event.getTarget();
-                entity.hurt(new DamageSource(DamageTypeHolderUtils.getHolder(level, "out_of_world"),player,player), state.getBaseAttackModifier() * 0.2F);
+                entity.hurt(new DamageSource(DamageTypeHolderUtils.getHolder(level, "out_of_world"), player, player), state.getBaseAttackModifier() * 0.2F);
                 int blade_damage = state.getDamage();
                 state.setDamage(blade_damage - 1);
             }
