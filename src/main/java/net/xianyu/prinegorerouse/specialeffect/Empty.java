@@ -22,13 +22,17 @@ public class Empty extends SpecialEffect {
     public static void onSlashBladeHit(SlashBladeEvent.HitEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
         if(state.hasSpecialEffect(NrSpecialEffectsRegistry.Empty.getId())) {
+            // 已存在Player类型前置判断，基础安全逻辑完整
             if (!(event.getUser() instanceof Player))
                 return;
+            
             Player player = (Player) event.getUser();
             int level = player.experienceLevel;
-            if(SpecialEffect.isEffective(NrSpecialEffectsRegistry.Empty.get(),level)) {
+            
+            if(SpecialEffect.isEffective(NrSpecialEffectsRegistry.Empty.get(), level)) {
                 event.getTarget().setHealth(0.0f);
-                event.getUser().setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+                // 修复优化：复用已验证类型的player对象，替代重复调用event.getUser()，避免潜在类型风险
+                player.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
             }
         }
     }
