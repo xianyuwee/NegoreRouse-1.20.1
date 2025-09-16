@@ -10,19 +10,24 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
 
-
 @Mod.EventBusSubscriber
 public class Phantom extends SpecialEffect {
     public Phantom() {
         super(1, false, false);
     }
 
-
     @SubscribeEvent
-    public static void onSlashBladeHit (SlashBladeEvent.HitEvent event){
+    public static void onSlashBladeHit(SlashBladeEvent.HitEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
-        Player player = (Player) event.getUser();
+        
+        // 添加类型检查 - 修复崩溃的关键
+        if (!(event.getUser() instanceof Player)) {
+            return; // 如果不是玩家，直接返回
+        }
+        
+        Player player = (Player) event.getUser(); // 现在安全了
         int level = player.experienceLevel;
+        
         if (state.hasSpecialEffect(NrSpecialEffectsRegistry.Phantom.getId())) {
             if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.Phantom.get(), level)) {
                 float maxHealth = event.getTarget().getMaxHealth();
