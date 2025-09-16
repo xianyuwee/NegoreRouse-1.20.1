@@ -56,16 +56,17 @@ public class Fate extends SpecialEffect {
     @SubscribeEvent
     public static void onSlashBladeHit(SlashBladeEvent.HitEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
-        // 添加类型检查 - 修复崩溃的关键
+        // 已正确添加Player类型前置判断，避免ClassCastException
         if (!(event.getUser() instanceof Player)) {
-            return; // 如果不是玩家，直接返回
+            return; 
         }
         
-        Player player = (Player) event.getUser(); // 现在安全了
-        int level = player.experienceLevel;
+        Player player = (Player) event.getUser();
+        int level = player.experienceLevel; // 仅定义一次，避免重复变量编译错误
         ItemStack offhandItem = player.getOffhandItem();
+        
         if (state.hasSpecialEffect(NrSpecialEffectsRegistry.Fate.getId())) {
-            int level = player.experienceLevel;
+            // 移除重复的int level定义，复用上方已定义的level变量
             if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.Fate.get(), level) && player.getMainHandItem().getHoverName().equals(event.getBlade().getHoverName())) {
                 double decimal = random.nextDouble();
                 if (decimal - 0.5d <= 0.000001) {
