@@ -56,7 +56,13 @@ public class Fate extends SpecialEffect {
     @SubscribeEvent
     public static void onSlashBladeHit(SlashBladeEvent.HitEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
-        Player player = (Player) event.getUser();
+        // 添加类型检查 - 修复崩溃的关键
+        if (!(event.getUser() instanceof Player)) {
+            return; // 如果不是玩家，直接返回
+        }
+        
+        Player player = (Player) event.getUser(); // 现在安全了
+        int level = player.experienceLevel;
         ItemStack offhandItem = player.getOffhandItem();
         if (state.hasSpecialEffect(NrSpecialEffectsRegistry.Fate.getId())) {
             int level = player.experienceLevel;
