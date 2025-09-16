@@ -28,7 +28,7 @@ public class Porgatory extends SpecialEffect {
         
         Player player = (Player) event.getUser(); // 现在安全了
         int level = player.experienceLevel;
-            int level = player.experienceLevel;
+            
             if(SpecialEffect.isEffective(NrSpecialEffectsRegistry.Porgatory.get(),level)) {
                 event.getTarget().addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,40,20));
             }
