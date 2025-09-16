@@ -23,6 +23,7 @@ public class ReversePower extends SpecialEffect {
     public static void onSlashBladeUpdate(SlashBladeEvent.UpdateEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
         if(state.hasSpecialEffect(NrSpecialEffectsRegistry.ReversePower.getId())) {
+            // 实体判断逻辑已存在且完整，无需修改：先验证event.getEntity()是否为Player，非Player直接返回
             if (!(event.getEntity() instanceof Player))
                 return;
             Player player = (Player) event.getEntity();
