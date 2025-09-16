@@ -79,6 +79,7 @@ public class Oracle extends SpecialEffect {
         int num = (int) (Math.random() * 19) - 9;
         float decimal = random.nextFloat();
         Level level1 = event.getUser().level();
+        // 修复：将LivingEntity判断移出Player判断的代码块，改为并列分支，避免变量作用域错误
         if (event.getUser() instanceof Player) {
             Player player = (Player) event.getUser();
             int level = player.experienceLevel;
@@ -114,43 +115,47 @@ public class Oracle extends SpecialEffect {
                     }
 
                     player.level().addFreshEntity(drive);
-                } else if (event.getUser() instanceof LivingEntity) {
-                    LivingEntity entity = (LivingEntity) event.getUser();
-                    ItemStack offhandItem2 = entity.getOffhandItem();
-                    int level3 = player.experienceLevel;
-                    if (!(offhandItem2.getItem() instanceof ItemSlashBlade)) return;
-                    CompoundTag nbt2 = offhandItem2.getOrCreateTag();
-                    if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.Oracle.get(), level3) && NRConfig.OFFHAND_CAN_ACTIVE.get().equals(true)
-                            && nbt2 != null) {
-                        if (!hasSpecialEffects(entity.getOffhandItem(), prinegorerouse.MOD_ID + ":oracle")) return;
-                        if (decimal - 0.8F <= 0.000001F) {
-                            Vec3 centerOffset = Vec3.ZERO;
-                            EntityShinyDrive drive = new EntityShinyDrive(NrEntitiesRegistry.ShinyDrive, level1);
-                            Vec3 lookAngle = entity.getLookAngle();
+                }
+            }
+        }
+        // 修复：单独处理LivingEntity分支，引用player前先判断类型，避免作用域外变量引用
+        else if (event.getUser() instanceof LivingEntity) {
+            LivingEntity entity = (LivingEntity) event.getUser();
+            // 经验等级为Player特有属性，需先判断是否为Player再转换
+            if (!(entity instanceof Player player)) return;
+            int level3 = player.experienceLevel;
+            ItemStack offhandItem2 = entity.getOffhandItem();
+            if (!(offhandItem2.getItem() instanceof ItemSlashBlade)) return;
+            CompoundTag nbt2 = offhandItem2.getOrCreateTag();
+            if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.Oracle.get(), level3) && NRConfig.OFFHAND_CAN_ACTIVE.get().equals(true)
+                    && nbt2 != null) {
+                if (!hasSpecialEffects(entity.getOffhandItem(), prinegorerouse.MOD_ID + ":oracle")) return;
+                if (decimal - 0.8F <= 0.000001F) {
+                    Vec3 centerOffset = Vec3.ZERO;
+                    EntityShinyDrive drive = new EntityShinyDrive(NrEntitiesRegistry.ShinyDrive, level1);
+                    Vec3 lookAngle = entity.getLookAngle();
 
-                            Vec3 pos = entity.position().add(0.0D, (double) entity.getEyeHeight() * 0.75D, 0.0D);
+                    Vec3 pos = entity.position().add(0.0D, (double) entity.getEyeHeight() * 0.75D, 0.0D);
 
-                            pos = pos.add(VectorHelper.getVectorForRotation(0.0F, entity.getViewYRot(0)).scale(centerOffset.y))
-                                    .add(VectorHelper.getVectorForRotation(0, entity.getViewYRot(0) + 90).scale(centerOffset.z))
-                                    .add(lookAngle.scale(centerOffset.z));
-                            drive.setDamage(3/Math.sqrt(player.getAttributeValue(Attributes.ATTACK_DAMAGE)));
-                            drive.setSpeed(3.0F);
-                            drive.setColor(111111111);
-                            drive.setPos(pos.x, pos.y, pos.z);
-                            drive.setOwner(player);
-                            drive.shoot(lookAngle.x, lookAngle.y, lookAngle.z, drive.getSpeed(), 0);
-                            drive.setDelay(10);
-                            drive.setLifetime(50);
+                    pos = pos.add(VectorHelper.getVectorForRotation(0.0F, entity.getViewYRot(0)).scale(centerOffset.y))
+                            .add(VectorHelper.getVectorForRotation(0, entity.getViewYRot(0) + 90).scale(centerOffset.z))
+                            .add(lookAngle.scale(centerOffset.z));
+                    drive.setDamage(3/Math.sqrt(player.getAttributeValue(Attributes.ATTACK_DAMAGE)));
+                    drive.setSpeed(3.0F);
+                    drive.setColor(111111111);
+                    drive.setPos(pos.x, pos.y, pos.z);
+                    drive.setOwner(player);
+                    drive.shoot(lookAngle.x, lookAngle.y, lookAngle.z, drive.getSpeed(), 0);
+                    drive.setDelay(10);
+                    drive.setLifetime(50);
 
-                            switch (num) {
-                                case -9, -2, -8, -7, -6, -5, -4, -3, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
-                                    drive.setRotationRoll(10.0F * num);
-                                    break;
-                            }
-
-                            entity.level().addFreshEntity(drive);
-                        }
+                    switch (num) {
+                        case -9, -2, -8, -7, -6, -5, -4, -3, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
+                            drive.setRotationRoll(10.0F * num);
+                            break;
                     }
+
+                    entity.level().addFreshEntity(drive);
                 }
             }
         }
