@@ -1,0 +1,44 @@
+{
+  "type": "slashblade:shaped_blade",
+  "blade": "prinegorerouse:ananke_blade",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade",
+      "request": {
+        "kill": 2500,
+        "name": "prinegorerouse:nyx_blade",
+        "proud_soul": 25000,
+        "refine": 40
+      }
+    },
+    "C": {
+      "item": "prinegorerouse:fatestar"
+    },
+    "M": {
+      "item": "minecraft:obsidian"
+    },
+    "P": {
+      "item": "prinegorerouse:protogenoi"
+    },
+    "R": {
+      "item": "minecraft:diamond_sword"
+    },
+    "S": {
+      "item": "minecraft:gold_block"
+    },
+    "W": {
+      "item": "minecraft:golden_sword"
+    }
+  },
+  "pattern": [
+    "PMR",
+    "CBC",
+    "WSP"
+  ],
+  "result": {
+    "item": "slashblade:slashblade"
+  },
+  "show_notification": true
+}

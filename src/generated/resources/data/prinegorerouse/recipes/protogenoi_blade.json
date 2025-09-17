@@ -1,0 +1,35 @@
+{
+  "type": "slashblade:shaped_blade",
+  "blade": "prinegorerouse:protogenoi_blade",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade",
+      "request": {
+        "kill": 5000,
+        "name": "prinegorerouse:chronosn_blade",
+        "proud_soul": 50000,
+        "refine": 50
+      }
+    },
+    "P": {
+      "item": "prinegorerouse:protogenoi"
+    },
+    "S": {
+      "item": "minecraft:enchanting_table"
+    },
+    "W": {
+      "item": "slashblade:proudsoul_sphere"
+    }
+  },
+  "pattern": [
+    "SPS",
+    "WBW",
+    "SPS"
+  ],
+  "result": {
+    "item": "slashblade:slashblade"
+  },
+  "show_notification": true
+}

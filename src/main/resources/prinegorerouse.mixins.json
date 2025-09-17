@@ -7,8 +7,7 @@
   "mixins": [
     "SwordTypeMixin"
   ],
-  "client": [
-  ],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }

@@ -14,12 +14,33 @@ import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
 public class EntityShinyDrive extends EntityDrive {
+    // 添加缺失的字段
+    private int delayTick;
+    private float delaySpeed;
+    
     public EntityShinyDrive(EntityType<? extends Projectile> entityTypeIn, Level worldIn) {
         super(entityTypeIn, worldIn);
     }
 
     public static EntityShinyDrive createInstance(PlayMessages.SpawnEntity packet, Level worldIn) {
         return new EntityShinyDrive(NrEntitiesRegistry.ShinyDrive, worldIn);
+    }
+
+    // 添加缺失的方法
+    public void setDelayTick(int delayTick) {
+        this.delayTick = delayTick;
+    }
+    
+    public int getDelayTick() {
+        return this.delayTick;
+    }
+    
+    public void setDelaySpeed(float delaySpeed) {
+        this.delaySpeed = delaySpeed;
+    }
+    
+    public float getDelaySpeed() {
+        return this.delaySpeed;
     }
 
     @Override

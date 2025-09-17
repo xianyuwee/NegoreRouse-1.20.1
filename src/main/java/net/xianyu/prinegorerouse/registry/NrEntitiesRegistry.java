@@ -11,7 +11,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegisterEvent;
 import net.xianyu.prinegorerouse.entity.*;
 
-
 public class NrEntitiesRegistry {
     public static final ResourceLocation NRBlisteringSwordsLoc = new ResourceLocation("prinegorerouse", classToString(EntityNRBlisteringSword.class));
     public static EntityType<EntityNRBlisteringSword> NRBlisteringSword;
@@ -23,6 +22,9 @@ public class NrEntitiesRegistry {
     public static EntityType<EntityNRDrive> LineDrive;
     public static EntityType<EntityDrive> FireDrive;
     public static EntityType<EntityDrive> ShinyDrive;
+    // 添加 NRJudgementCut 的声明
+    public static EntityType<EntityNRJudgementCut> NRJudgementCut;
+    
     public NrEntitiesRegistry() {
     }
 
@@ -120,13 +122,25 @@ public class NrEntitiesRegistry {
                     .of(EntityNRDrive::new, MobCategory.MISC)
                     .sized(10.0F, 5.0F)
                     .setTrackingRange(5)
+                    .setUpdateInterval(20) // 添加缺失的setUpdateInterval
                     .setCustomClientFactory(EntityNRDrive::createInstance)
                     .build("NR_drive");
             helper.register(new ResourceLocation("prinegorerouse", "nr_drive"), entityType);
         });
-
+        
+        // 修复NRJudgementCut的注册
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, helper -> {
+            EntityType<EntityNRJudgementCut> entityType = Builder
+                .of(EntityNRJudgementCut::new, MobCategory.MISC)
+                .sized(0.5F, 0.5F)
+                .setTrackingRange(4)
+                .setUpdateInterval(20) // 添加setUpdateInterval
+                .setCustomClientFactory(EntityNRJudgementCut::createInstance)
+                .build("nr_judgement_cut");
+            NRJudgementCut = entityType; // 赋值给静态变量
+            helper.register(new ResourceLocation("prinegorerouse", "nr_judgement_cut"), entityType);
+        });
     }
-
 
     private static String classToString(Class<? extends Entity> entityClass) {
         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, entityClass.getSimpleName())

@@ -12,12 +12,42 @@ import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
 public class EntityCountableSwords extends EntityNRBlisteringSword{
+    // 添加缺失的字段
+    private boolean useCustomDirection;
+    private boolean autoTargeting;
+    private int lifeTime;
+    
     public EntityCountableSwords(EntityType<? extends Projectile> type, Level world) {
         super(type, world);
     }
 
     public static EntityCountableSwords createInstance(PlayMessages.SpawnEntity packet, Level worldIn) {
         return new EntityCountableSwords(NrEntitiesRegistry.Countable_Sword, worldIn);
+    }
+
+    // 添加缺失的方法
+    public void setUseCustomDirection(boolean useCustomDirection) {
+        this.useCustomDirection = useCustomDirection;
+    }
+    
+    public boolean isUseCustomDirection() {
+        return this.useCustomDirection;
+    }
+    
+    public void setAutoTargeting(boolean autoTargeting) {
+        this.autoTargeting = autoTargeting;
+    }
+    
+    public boolean isAutoTargeting() {
+        return this.autoTargeting;
+    }
+    
+    public void setLifeTime(int lifeTime) {
+        this.lifeTime = lifeTime;
+    }
+    
+    public int getLifeTime() {
+        return this.lifeTime;
     }
 
     @Override
@@ -89,7 +119,6 @@ public class EntityCountableSwords extends EntityNRBlisteringSword{
             sword.setColor(colorCode);
             sword.setNoClip(clip);
             sword.setDelayTicks(delay);
-
 
             if (mode == SpawnMode.RANDOM) {
                 Vec3 initPos = calculateInitialRandomPos(centerPos);

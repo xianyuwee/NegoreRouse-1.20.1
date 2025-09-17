@@ -1,0 +1,47 @@
+{
+  "type": "slashblade:shaped_blade",
+  "blade": "prinegorerouse:tartarus_blade",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade",
+      "request": {
+        "kill": 250,
+        "name": "prinegorerouse:erebus_blade",
+        "proud_soul": 4000,
+        "refine": 5
+      }
+    },
+    "C": {
+      "item": "minecraft:wither_skeleton_skull"
+    },
+    "D": {
+      "item": "minecraft:netherrack"
+    },
+    "P": {
+      "item": "prinegorerouse:tartarus"
+    },
+    "Q": {
+      "item": "minecraft:ghast_tear"
+    },
+    "S": {
+      "item": "minecraft:obsidian"
+    },
+    "W": {
+      "item": "minecraft:nether_wart"
+    },
+    "X": {
+      "item": "minecraft:blaze_rod"
+    }
+  },
+  "pattern": [
+    "QPS",
+    "DBW",
+    "CPX"
+  ],
+  "result": {
+    "item": "slashblade:slashblade"
+  },
+  "show_notification": true
+}
