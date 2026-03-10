@@ -90,6 +90,8 @@ public class CosmicLine {
                     Vec3 directionVec = VectorHelper.rotateVectorAroundY(lookAngle, angleOffset);
 
                     lineDrive.shoot(directionVec.x, directionVec.y, directionVec.z, speed, 0.0F);
+                    lineDrive.setDelayTick(15);
+                    lineDrive.setDelaySpeed(0.1F);
 
                     lineDrive.setSpeed(speed);
                     lineDrive.setOwner(playerIn);
@@ -100,12 +102,13 @@ public class CosmicLine {
                     lineDrive.setLifetime(lifetime);
                     lineDrive.setRotationRoll(roll);
 
+
                     if (playerIn != null) {
                         playerIn.getCapability(ConcentrationRankCapabilityProvider.RANK_POINT)
                                 .ifPresent(r -> lineDrive.setRank(r.getRankLevel(playerIn.level().getGameTime())));
                     }
                     world.addFreshEntity(lineDrive);
-                    playerIn.playSound(SoundEvents.LIGHTNING_BOLT_THUNDER, 0.2F, 1.5F);
+                    lineDrive.playSound(SoundEvents.LIGHTNING_BOLT_THUNDER, 0.2F,1.5F);
                 }
             });
         }

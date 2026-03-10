@@ -105,6 +105,8 @@ public class Oracle extends SpecialEffect {
                     drive.setOwner(player);
                     drive.shoot(lookAngle.x, lookAngle.y, lookAngle.z, drive.getSpeed(), 0);
                     drive.setDelay(10);
+                    drive.setDelayTick(50);
+                    drive.setDelaySpeed(3.0F);
                     drive.setLifetime(50);
 
                     switch (num) {
@@ -140,6 +142,8 @@ public class Oracle extends SpecialEffect {
                             drive.setOwner(player);
                             drive.shoot(lookAngle.x, lookAngle.y, lookAngle.z, drive.getSpeed(), 0);
                             drive.setDelay(10);
+                            drive.setDelayTick(50);
+                            drive.setDelaySpeed(3.0F);
                             drive.setLifetime(50);
 
                             switch (num) {

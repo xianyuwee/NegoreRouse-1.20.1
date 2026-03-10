@@ -2,6 +2,7 @@ package net.xianyu.prinegorerouse.registry;
 
 import com.google.common.base.CaseFormat;
 import mods.flammpfeil.slashblade.entity.EntityDrive;
+import mods.flammpfeil.slashblade.entity.EntityJudgementCut;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -21,8 +22,10 @@ public class NrEntitiesRegistry {
     public static EntityType<EntityNRDrive> NRDrive;
     public static EntityType<EntityNRDrive> DriveEx;
     public static EntityType<EntityNRDrive> LineDrive;
-    public static EntityType<EntityDrive> FireDrive;
-    public static EntityType<EntityDrive> ShinyDrive;
+    public static EntityType<EntityNRSDrive> NRSDrive;
+    public static EntityType<EntityNRSDrive> FireDrive;
+    public static EntityType<EntityNRSDrive> ShinyDrive;
+    public static EntityType<EntityNRJudgementCut> NRJudgementCut;
     public NrEntitiesRegistry() {
     }
 
@@ -83,8 +86,8 @@ public class NrEntitiesRegistry {
         });
 
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
-            EntityType<EntityDrive> entity = FireDrive = Builder
-                    .of(EntityDrive::new, MobCategory.MISC)
+            EntityType<EntityNRSDrive> entity = FireDrive = Builder
+                    .of(EntityNRSDrive::new, MobCategory.MISC)
                     .sized(3.0F, 5.0F)
                     .setTrackingRange(4)
                     .setUpdateInterval(20)
@@ -105,8 +108,8 @@ public class NrEntitiesRegistry {
         });
 
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
-            EntityType<EntityDrive> entity = ShinyDrive = Builder
-                    .of(EntityDrive::new, MobCategory.MISC)
+            EntityType<EntityNRSDrive> entity = ShinyDrive = Builder
+                    .of(EntityNRSDrive::new, MobCategory.MISC)
                     .sized(5.0F, 5.0F)
                     .setTrackingRange(4)
                     .setUpdateInterval(20)
@@ -123,6 +126,26 @@ public class NrEntitiesRegistry {
                     .setCustomClientFactory(EntityNRDrive::createInstance)
                     .build("NR_drive");
             helper.register(new ResourceLocation("prinegorerouse", "nr_drive"), entityType);
+        });
+
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
+            EntityType<EntityNRSDrive> entityType = NRSDrive = Builder
+                    .of(EntityNRSDrive::new, MobCategory.MISC)
+                    .sized(3.0F, 5.0F)
+                    .setTrackingRange(4)
+                    .setCustomClientFactory(EntityNRSDrive::createInstance)
+                    .build("NRS_drive");
+            helper.register(new ResourceLocation("prinegorerouse", "nrs_drive"), entityType);
+        });
+
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
+            EntityType<EntityNRJudgementCut> entityType = NRJudgementCut = Builder
+                    .of(EntityNRJudgementCut::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .setTrackingRange(4)
+                    .setCustomClientFactory(EntityNRJudgementCut::createInstance)
+                    .build("nr_judgement_cut");
+            helper.register(new ResourceLocation("prinegorerouse", "nr_judgement_cut"), entityType);
         });
 
     }

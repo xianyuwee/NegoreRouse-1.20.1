@@ -2,7 +2,7 @@
   "name": "prinegorerouse:aeon_blade",
   "properties": {
     "attack_base": 300.0,
-    "slash_art": "slashblade:sakura_end",
+    "slash_art": "prinegorerouse:over_the_horizon",
     "special_effects": [
       "prinegorerouse:eternity"
     ],

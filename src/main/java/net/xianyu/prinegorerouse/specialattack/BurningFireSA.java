@@ -4,6 +4,7 @@ import mods.flammpfeil.slashblade.capability.concentrationrank.ConcentrationRank
 import mods.flammpfeil.slashblade.item.ItemSlashBlade;
 import mods.flammpfeil.slashblade.util.KnockBacks;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -99,7 +100,8 @@ public class BurningFireSA {
                     driveEx.setSpeed(speed);
 
                     driveEx.setOwner(playerIn);
-                    driveEx.setDelay(20);
+                    driveEx.setDelayTick(10);
+                    driveEx.setDelaySpeed(0.1F);
                     driveEx.setColor(colorCode);
                     driveEx.setIsCritical(critical);
                     driveEx.setNoClip(clip);
@@ -111,6 +113,7 @@ public class BurningFireSA {
                         playerIn.getCapability(ConcentrationRankCapabilityProvider.RANK_POINT)
                                 .ifPresent(rank -> driveEx.setRank(rank.getRankLevel(playerIn.level().getGameTime())));
                     }
+                    driveEx.playSound(SoundEvents.LAVA_EXTINGUISH, 0.2F, 1.5F);
                 }
             });
         }

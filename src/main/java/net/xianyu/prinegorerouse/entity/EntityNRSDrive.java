@@ -1,11 +1,10 @@
 package net.xianyu.prinegorerouse.entity;
 
-import mods.flammpfeil.slashblade.SlashBlade;
-import mods.flammpfeil.slashblade.SlashBladeConfig;
 import mods.flammpfeil.slashblade.ability.StunManager;
 import mods.flammpfeil.slashblade.capability.concentrationrank.ConcentrationRankCapabilityProvider;
 import mods.flammpfeil.slashblade.capability.concentrationrank.IConcentrationRank;
 import mods.flammpfeil.slashblade.entity.EntityAbstractSummonedSword;
+import mods.flammpfeil.slashblade.entity.EntityDrive;
 import mods.flammpfeil.slashblade.entity.Projectile;
 import mods.flammpfeil.slashblade.item.ItemSlashBlade;
 import mods.flammpfeil.slashblade.util.AttackManager;
@@ -47,39 +46,35 @@ import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
 import javax.annotation.Nullable;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 import static mods.flammpfeil.slashblade.SlashBladeConfig.REFINE_DAMAGE_MULTIPLIER;
 import static mods.flammpfeil.slashblade.SlashBladeConfig.SLASHBLADE_DAMAGE_MULTIPLIER;
 
-public class EntityNRDrive extends EntityAbstractSummonedSword {
-    private static final EntityDataAccessor<Integer> COLOR = SynchedEntityData.defineId(EntityNRDrive.class,
+//用原版模型
+public class EntityNRSDrive extends EntityDrive {
+    private static final EntityDataAccessor<Integer> COLOR = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Float> RANK = SynchedEntityData.defineId(EntityNRDrive.class,
+    private static final EntityDataAccessor<Float> RANK = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> ROTATION_OFFSET = SynchedEntityData
-            .defineId(EntityNRDrive.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> ROTATION_ROLL = SynchedEntityData.defineId(EntityNRDrive.class,
+            .defineId(EntityNRSDrive.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> ROTATION_ROLL = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> BASESIZE = SynchedEntityData.defineId(EntityNRDrive.class,
+    private static final EntityDataAccessor<Float> BASESIZE = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> SPEED = SynchedEntityData.defineId(EntityNRDrive.class,
+    private static final EntityDataAccessor<Float> SPEED = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> LIFETIME = SynchedEntityData.defineId(EntityNRDrive.class,
+    private static final EntityDataAccessor<Float> LIFETIME = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Integer> DELAYTICK = SynchedEntityData.defineId(EntityNRDrive.class,
+    private static final EntityDataAccessor<Integer> DELAYTICK = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Float> DELAYSPEED = SynchedEntityData.defineId(EntityNRDrive.class,
+    private static final EntityDataAccessor<Float> DELAYSPEED = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Boolean> IN_DELAY = SynchedEntityData.defineId(EntityNRDrive.class,
+    private static final EntityDataAccessor<Boolean> IN_DELAY = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.BOOLEAN);
-    // 新增：伤害冷却机制
-    private final Map<Entity, Integer> hitCooldownMap = new WeakHashMap<>();
 
-    private static final EntityDataAccessor<Integer> FLAGS = SynchedEntityData.defineId(EntityNRDrive.class, EntityDataSerializers.INT);;
+    private static final EntityDataAccessor<Integer> FLAGS = SynchedEntityData.defineId(EntityNRSDrive.class, EntityDataSerializers.INT);;
 
     private KnockBacks action = KnockBacks.cancel;
 
@@ -114,7 +109,7 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
             this.action = KnockBacks.cancel;
     }
 
-    public EntityNRDrive(EntityType<? extends Projectile> entityTypeIn, Level worldIn) {
+    public EntityNRSDrive(EntityType<? extends Projectile> entityTypeIn, Level worldIn) {
         super(entityTypeIn, worldIn);
         this.setNoGravity(true);
         this.delayTicks = this.getDelayTick();
@@ -123,8 +118,8 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
         this.initialSpeed = this.getSpeed();
     }
 
-    public static EntityNRDrive createInstance(PlayMessages.SpawnEntity packet, Level worldIn) {
-        return new EntityNRDrive(NrEntitiesRegistry.NRDrive, worldIn);
+    public static EntityNRSDrive createInstance(PlayMessages.SpawnEntity packet, Level worldIn) {
+        return new EntityNRSDrive(NrEntitiesRegistry.NRSDrive, worldIn);
     }
 
     @Override
@@ -239,9 +234,6 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
     public void tick() {
         refreshFlags();
 
-        // 新增：更新伤害冷却
-        updateHitCooldown();
-
         // 只在首次tick时初始化延迟
         if (remainingDelayTicks == 0 && getDelayTick() > 0) {
             remainingDelayTicks = getDelayTick();
@@ -308,12 +300,7 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
         );
 
         if (entityHit != null) {
-            // 新增：检查是否在冷却期内
-            if (!hitCooldownMap.containsKey(entityHit.getEntity())) {
-                this.onHitEntity(entityHit);
-                // 新增：添加冷却期（10 ticks）
-                hitCooldownMap.put(entityHit.getEntity(), 10);
-            }
+            this.onHitEntity(entityHit);
         }
 
         // 检测方块碰撞
@@ -324,20 +311,6 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
 
         if (blockHit.getType() != HitResult.Type.MISS) {
             this.onHitBlock(blockHit);
-        }
-    }
-
-    // 新增：更新伤害冷却
-    private void updateHitCooldown() {
-        Iterator<Map.Entry<Entity, Integer>> iterator = hitCooldownMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Entity, Integer> entry = iterator.next();
-            int cooldown = entry.getValue() - 1;
-            if (cooldown <= 0) {
-                iterator.remove();
-            } else {
-                entry.setValue(cooldown);
-            }
         }
     }
 
@@ -515,7 +488,6 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
                 damageValue += rankDamageBonus;
             }
 
-            // 使用 ItemSlashBlade 的 getAttackDamage 方法替代
             damageValue *= AttackManager.getSlashBladeDamageScale(living) * SLASHBLADE_DAMAGE_MULTIPLIER.get();
 
             // 使用父类的isCritical方法

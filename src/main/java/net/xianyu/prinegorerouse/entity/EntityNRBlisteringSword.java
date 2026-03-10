@@ -6,9 +6,11 @@ import mods.flammpfeil.slashblade.entity.Projectile;
 
 import mods.flammpfeil.slashblade.util.KnockBacks;
 import mods.flammpfeil.slashblade.util.TargetSelector;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -24,6 +26,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
+import net.xianyu.prinegorerouse.utils.BlackHoleUtil;
 import org.joml.Vector3f;
 
 import java.lang.reflect.Field;
@@ -31,7 +34,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
-    //数据同步参数（移除TRACKING）
     public static final EntityDataAccessor<Boolean> IT_FIRED = SynchedEntityData.defineId(EntityNRBlisteringSword.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Optional<UUID>> TARGET = SynchedEntityData.defineId(EntityNRBlisteringSword.class, EntityDataSerializers.OPTIONAL_UUID);
     public static final EntityDataAccessor<Float> SPEED = SynchedEntityData.defineId(EntityNRBlisteringSword.class, EntityDataSerializers.FLOAT);
@@ -45,6 +47,11 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
     private static final EntityDataAccessor<Integer> DELAY_TICK = SynchedEntityData.defineId(EntityNRBlisteringSword.class,EntityDataSerializers.INT);
 
     public static final EntityDataAccessor<Boolean> IT_CHANGED = SynchedEntityData.defineId(EntityNRBlisteringSword.class, EntityDataSerializers.BOOLEAN);
+    // 新增字段
+    private static final EntityDataAccessor<Boolean> USE_CUSTOM_DIRECTION =
+            SynchedEntityData.defineId(EntityNRBlisteringSword.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> AUTO_TARGETING =
+            SynchedEntityData.defineId(EntityNRBlisteringSword.class, EntityDataSerializers.BOOLEAN);
 
     //运动控制参数
     private final float rotationAngle = 0.0f;
@@ -52,6 +59,7 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
     public SpawnMode spawnMode = SpawnMode.CIRCLE;
     private Vec3 prevPos = Vec3.ZERO;
     private float prevRotationAngle = 0.0f;
+
     public int lifeTime = 200;
     private boolean hasInitialized = false;
 
@@ -106,6 +114,8 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         this.entityData.define(LOCK_TARGET, Optional.empty());
         this.entityData.define(LOCK_TARGET_ID, -1); // -1 表示无目标
         this.entityData.define(DELAY_TICK, delayTicks);
+        this.entityData.define(USE_CUSTOM_DIRECTION, false);
+        this.entityData.define(AUTO_TARGETING, false);
     }
 
     public static EntityNRBlisteringSword createInstance(PlayMessages.SpawnEntity packet, Level worldIn) {
@@ -122,6 +132,22 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
 
     public void setChange(boolean change) {
         this.getEntityData().set(IT_CHANGED, change);
+    }
+
+    public void setUseCustomDirection(boolean use) {
+        this.entityData.set(USE_CUSTOM_DIRECTION, use);
+    }
+
+    public boolean useCustomDirection() {
+        return this.entityData.get(USE_CUSTOM_DIRECTION);
+    }
+
+    public void setAutoTargeting(boolean auto) {
+        this.entityData.set(AUTO_TARGETING, auto);
+    }
+
+    public boolean autoTargetingEnabled() {
+        return this.entityData.get(AUTO_TARGETING);
     }
 
     public void doChange() {
@@ -170,6 +196,13 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         this.entityData.set(DIY_PITCH, diyPitch);
     }
 
+    public int getLifeTime() {
+        return lifeTime;
+    }
+
+    public void setLifeTime(int lifeTime) {
+        this.lifeTime = lifeTime;
+    }
     // 新增：通用多部分实体处理
     private Entity getMainEntity(Entity entity) {
         // 处理末影龙类多部分实体
@@ -289,12 +322,23 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
                 this.yRotO = this.getYRot();
                 this.xRotO = this.getXRot();
             } else {
-                this.initialYaw = getDiyYaw();
+                // === 关键修改：应用180度偏移修正 ===
+                this.initialYaw = getDiyYaw(); // 添加180度偏移
                 this.initialPitch = getDiyPitch();
-                this.setDeltaMovement(this.getLookAngle());
+
+                // 计算方向向量（使用偏移后的角度）
+                double yawRad = initialYaw * Mth.DEG_TO_RAD;
+                double pitchRad = initialPitch * Mth.DEG_TO_RAD;
+                double xzLen = Math.cos(pitchRad);
+                double x = -Math.sin(yawRad) * xzLen;
+                double y = -Math.sin(pitchRad);
+                double z = Math.cos(yawRad) * xzLen;
+                Vec3 direction = new Vec3(x, y, z).normalize();
+
+                this.setDeltaMovement(direction);
                 if (!itChanged()) {
-                    this.setYRot(initialYaw);
-                    this.setXRot(initialPitch);
+                    this.setYRot(-initialYaw);
+                    this.setXRot(-initialPitch);
                 }
                 this.entityData.set(DIRECTION_YAW, initialYaw);
                 this.entityData.set(DIRECTION_PITCH, initialPitch);
@@ -304,6 +348,7 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         }
         this.hasInitialized = true;
     }
+
 
     private void handleDelayPhase() {
         if (this.level().isClientSide) {
@@ -334,6 +379,11 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         if (this.level().isClientSide) {
             adjustInitialDirection();
         }
+    }
+
+    private void maintainCustomDirection() {
+        this.setYRot(initialYaw);
+        this.setXRot(initialPitch);
     }
 
     private void adjustInitialDirection() {
@@ -406,10 +456,22 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
 
     //飞行阶段处理
     private void handleFlyingPhase() {
-        if (useSmartTracking) {
-            handleSmartTracking();
+        if (useCustomDirection()) {
+            // 使用自定义方向
+            if (autoTargetingEnabled()) {
+                // 启用自动索敌
+                handleSmartTracking();
+            } else {
+                // 保持自定义方向不改变
+                maintainCustomDirection();
+            }
         } else {
-            handleLegacyTracking(); // 保留旧版追踪逻辑
+            // 原有追踪逻辑
+            if (useSmartTracking) {
+                handleSmartTracking();
+            } else {
+                handleLegacyTracking();
+            }
         }
         super.tick();
     }
@@ -527,21 +589,33 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
 
     // 新增：应用命中效果
     private void applyHitEffects(Entity mainEntity) {
-        if (mainEntity instanceof LivingEntity livingTarget) {
-            float baseDamage = (float) this.getDamage();
-            float finalDamage = calculateEnchantedDamage(baseDamage, livingTarget);
+        // 只在服务端执行
+        if (!mainEntity.level().isClientSide()) {
+            if (mainEntity instanceof LivingEntity livingTarget) {
+                float baseDamage = (float) this.getDamage();
+                float finalDamage = calculateEnchantedDamage(baseDamage, livingTarget);
 
-            // 设置伤害值
-            this.setDamage(finalDamage);
+                // 设置伤害值
+                this.setDamage(finalDamage);
 
-            // 应用击退和眩晕效果
-            if (livingTarget instanceof LivingEntity) {
+                // 应用击退和眩晕效果
                 KnockBacks.cancel.action.accept(livingTarget);
                 StunManager.setStun(livingTarget);
-            }
 
-            // 调用父类处理（确保声音、粒子等效果）
-            super.onHitEntity(new EntityHitResult(mainEntity));
+                // 添加blackhole层数
+                BlackHoleUtil.addBlackHoleCount(livingTarget, 1);
+
+                // 触发烟花粒子（仅在服务端）
+                if (livingTarget.level() instanceof ServerLevel) {
+                    ServerLevel serverLevel = (ServerLevel) livingTarget.level();
+                    serverLevel.sendParticles(ParticleTypes.FIREWORK,
+                            livingTarget.getX(), livingTarget.getY() + 1.0, livingTarget.getZ(),
+                            1, 0.0, 0.0, 0.0, 0.0);
+                }
+
+                // 调用父类处理
+                super.onHitEntity(new EntityHitResult(mainEntity));
+            }
         }
     }
 

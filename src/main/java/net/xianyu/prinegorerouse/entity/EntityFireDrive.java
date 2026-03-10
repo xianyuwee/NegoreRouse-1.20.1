@@ -11,7 +11,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
-public class EntityFireDrive extends EntityDrive {
+public class EntityFireDrive extends EntityNRSDrive {
     public EntityFireDrive(EntityType<? extends Projectile> entityTypeIn, Level worldIn) {
         super(entityTypeIn, worldIn);
     }

@@ -55,7 +55,7 @@ public class NrBladeBuiltInRegistry {
                         PropertiesDefinition.Builder.newInstance()
                                 .baseAttackModifier(300.0F)
                                 .defaultSwordType(List.of(SwordType.BEWITCHED))
-                                .slashArtsType(SlashArtsRegistry.SAKURA_END.getId())
+                                .slashArtsType(NrSlashArtRegistry.OVER_THE_HORIZON.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Eternity.getId())
                                 .maxDamage(40)
                                 .build(),

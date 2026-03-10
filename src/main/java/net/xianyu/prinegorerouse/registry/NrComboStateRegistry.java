@@ -5,6 +5,7 @@ import mods.flammpfeil.slashblade.ability.StunManager;
 import mods.flammpfeil.slashblade.init.DefaultResources;
 import mods.flammpfeil.slashblade.registry.combo.ComboState;
 import mods.flammpfeil.slashblade.util.AttackManager;
+import mods.flammpfeil.slashblade.util.KnockBacks;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
@@ -26,6 +27,8 @@ public class NrComboStateRegistry {
     public static final RegistryObject<ComboState> BURNING_FIRE_SA_END;
     public static final RegistryObject<ComboState> COSMIC_LINE;
     public static final RegistryObject<ComboState> COSMIC_LINE_END;
+    public static final RegistryObject<ComboState> OVER_THE_HORIZON;
+    public static final RegistryObject<ComboState> OVER_THE_HORIZON_END;
 
     public NrComboStateRegistry() {
     }
@@ -94,14 +97,14 @@ public class NrComboStateRegistry {
         Objects.requireNonNull(var1002);
         DIVINE_CROSS_SA_END = var1000.register("divine_cross_sa_end", var1002::build);
 
-        var1002 = ComboState.Builder.newInstance().startAndEnd(459,488).priority(50).motionLoc(DefaultResources.ExMotionLocation).next(ComboState.TimeoutNext.buildFromFrame(15, (entity) -> {
+        var1002 = ComboState.Builder.newInstance().startAndEnd(400,459).priority(50).motionLoc(DefaultResources.ExMotionLocation).next(ComboState.TimeoutNext.buildFromFrame(15, (entity) -> {
             return SlashBlade.prefix("none");
         })).nextOfTimeout((entity) -> {
             return prinegorerouse.prefix("burning_fire_sa_end");
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -80.0F, Vec3.ZERO, false, false,0.1);
         }).put(3, (entityIn) -> {
-            BurningFireSA.doSlash(entityIn,90.0F, 30, Vec3.ZERO, false,false, 2.0F);
+            BurningFireSA.doSlash(entityIn,90.0F, 60, Vec3.ZERO, false,false, 2.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         BURNING_FIRE_SA = var1000.register("burning_fire_sa", var1002::build);
@@ -114,14 +117,14 @@ public class NrComboStateRegistry {
         Objects.requireNonNull(var1002);
         BURNING_FIRE_SA_END = var1000.register("burning_fire_sa_end", var1002::build);
 
-        var1002 = ComboState.Builder.newInstance().startAndEnd(459,488).priority(50).motionLoc(DefaultResources.ExMotionLocation).next(ComboState.TimeoutNext.buildFromFrame(15, (entity) -> {
+        var1002 = ComboState.Builder.newInstance().startAndEnd(400,459).priority(50).motionLoc(DefaultResources.ExMotionLocation).next(ComboState.TimeoutNext.buildFromFrame(15, (entity) -> {
             return SlashBlade.prefix("none");
         })).nextOfTimeout((entity) -> {
             return prinegorerouse.prefix("cosmic_line_end");
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -80.0F, Vec3.ZERO,false,false,0.1);
         }).put(3, (entityIn) -> {
-            CosmicLine.doSlash(entityIn, 90.0F,80, Vec3.ZERO, false, false, 3.0F);
+            CosmicLine.doSlash(entityIn, 90.0F,100, Vec3.ZERO, false, false, 2.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         COSMIC_LINE = var1000.register("cosmic_line",var1002::build);
@@ -133,6 +136,26 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(0,AttackManager::playQuickSheathSoundAction).build()).releaseAction(ComboState::releaseActionQuickCharge);
         Objects.requireNonNull(var1002);
         COSMIC_LINE_END = var1000.register("cosmic_line_end",var1002::build);
+
+        var1002 = ComboState.Builder.newInstance().startAndEnd(400,459).priority(50).motionLoc(DefaultResources.ExMotionLocation).next(ComboState.TimeoutNext.buildFromFrame(15, (entity) -> {
+            return SlashBlade.prefix("none");
+        })).nextOfTimeout((entity) -> {
+            return prinegorerouse.prefix("over_the_horizon_end");
+        }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
+            AttackManager.doSlash(entityIn, -80.0F, Vec3.ZERO,false,false,0.1);
+        }).put(3, (entityIn) -> {
+            OverTheHorizon.doSlash(entityIn, 0.0F,100, 2.0F, KnockBacks.cancel, 2.0F);
+        }).build()).addHitEffect(StunManager::setStun);
+        Objects.requireNonNull(var1002);
+        OVER_THE_HORIZON = var1000.register("over_the_horizon",var1002::build);
+
+        var1002 = ComboState.Builder.newInstance().startAndEnd(459,488).priority(50).motionLoc(DefaultResources.ExMotionLocation).next((entity) -> {
+            return SlashBlade.prefix("none");
+        }).nextOfTimeout((entity) -> {
+            return SlashBlade.prefix("none");
+        }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(0,AttackManager::playQuickSheathSoundAction).build()).releaseAction(ComboState::releaseActionQuickCharge);
+        Objects.requireNonNull(var1002);
+        OVER_THE_HORIZON_END = var1000.register("over_the_horizon_end",var1002::build);
 
     }
 }

@@ -7,6 +7,7 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xianyu.prinegorerouse.client.renderer.entity.NRDriveRenderer;
+import net.xianyu.prinegorerouse.client.renderer.entity.NRJudgementCutRenderer;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
     @Mod.EventBusSubscriber(
@@ -26,9 +27,11 @@ import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
             event.registerEntityRenderer(NrEntitiesRegistry.FireDrive, DriveRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.ShinyDrive, DriveRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.NRDrive, NRDriveRenderer::new);
+            event.registerEntityRenderer(NrEntitiesRegistry.NRSDrive, DriveRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.LineDrive, NRDriveRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.NRBlisteringSword, SummonedSwordRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.Countable_Sword, SummonedSwordRenderer::new);
+            event.registerEntityRenderer(NrEntitiesRegistry.NRJudgementCut, NRJudgementCutRenderer::new);
         }
     }
 

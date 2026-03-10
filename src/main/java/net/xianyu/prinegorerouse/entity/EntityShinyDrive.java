@@ -13,7 +13,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
-public class EntityShinyDrive extends EntityDrive {
+public class EntityShinyDrive extends EntityNRSDrive {
     public EntityShinyDrive(EntityType<? extends Projectile> entityTypeIn, Level worldIn) {
         super(entityTypeIn, worldIn);
     }

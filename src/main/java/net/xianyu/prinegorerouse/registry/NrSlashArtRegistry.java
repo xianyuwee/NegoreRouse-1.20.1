@@ -12,6 +12,7 @@ public class NrSlashArtRegistry {
     public static final RegistryObject<SlashArts> DIVINE_CROSS_SA;
     public static final RegistryObject<SlashArts> BURNING_FIRE_SA;
     public static final RegistryObject<SlashArts> COSMIC_LINE;
+    public static final RegistryObject<SlashArts> OVER_THE_HORIZON;
 
     public NrSlashArtRegistry(){
     }
@@ -46,6 +47,12 @@ public class NrSlashArtRegistry {
         COSMIC_LINE = NR_SLASH_ARTS.register("cosmic_line", () -> {
             return new SlashArts((e) -> {
                 return NrComboStateRegistry.COSMIC_LINE.getId();
+            });
+        });
+
+        OVER_THE_HORIZON = NR_SLASH_ARTS.register("over_the_horizon", () -> {
+            return new SlashArts((e) -> {
+                return NrComboStateRegistry.OVER_THE_HORIZON.getId();
             });
         });
 
