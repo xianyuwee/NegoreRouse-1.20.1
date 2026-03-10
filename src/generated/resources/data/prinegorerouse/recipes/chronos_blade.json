@@ -1,0 +1,45 @@
+{
+  "type": "slashblade:shaped_blade",
+  "blade": "prinegorerouse:chronos_blade",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade",
+      "request": {
+        "kill": 500,
+        "name": "prinegorerouse:nier_blade",
+        "proud_soul": 5000,
+        "refine": 5
+      }
+    },
+    "M": {
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade",
+      "request": {
+        "name": "slashblade:yuzukitukumo"
+      }
+    },
+    "P": {
+      "item": "prinegorerouse:chronos"
+    },
+    "R": {
+      "item": "slashblade:proudsoul_ingot"
+    },
+    "S": {
+      "item": "minecraft:diamond"
+    },
+    "W": {
+      "item": "slashblade:proudsoul_sphere"
+    }
+  },
+  "pattern": [
+    "WP ",
+    "SBM",
+    " PR"
+  ],
+  "result": {
+    "item": "slashblade:slashblade"
+  },
+  "show_notification": true
+}

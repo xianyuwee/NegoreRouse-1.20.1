@@ -1,0 +1,50 @@
+{
+  "type": "slashblade:shaped_blade",
+  "blade": "prinegorerouse:antauge_blade",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade",
+      "request": {
+        "kill": 500,
+        "name": "slashblade:muramasa",
+        "proud_soul": 10000,
+        "refine": 5
+      }
+    },
+    "C": {
+      "item": "prinegorerouse:hercules"
+    },
+    "F": {
+      "item": "slashblade:proudsoul_sphere"
+    },
+    "K": {
+      "item": "slashblade:proudsoul_ingot"
+    },
+    "M": {
+      "item": "minecraft:nether_star"
+    },
+    "P": {
+      "item": "prinegorerouse:chaos"
+    },
+    "R": {
+      "item": "minecraft:glowstone"
+    },
+    "S": {
+      "item": "minecraft:experience_bottle"
+    },
+    "W": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    "FPM",
+    "RBW",
+    "SCK"
+  ],
+  "result": {
+    "item": "slashblade:slashblade"
+  },
+  "show_notification": true
+}

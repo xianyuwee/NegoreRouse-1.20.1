@@ -1,0 +1,45 @@
+{
+  "type": "slashblade:shaped_blade",
+  "blade": "prinegorerouse:erebus_blade",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade",
+      "request": {
+        "kill": 3000,
+        "name": "prinegorerouse:chronos_blade",
+        "proud_soul": 30000,
+        "refine": 25
+      }
+    },
+    "M": {
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade",
+      "request": {
+        "name": "slashblade:sabigatana"
+      }
+    },
+    "P": {
+      "item": "minecraft:obsidian"
+    },
+    "R": {
+      "item": "slashblade:proudsoul_ingot"
+    },
+    "S": {
+      "item": "prinegorerouse:erebus"
+    },
+    "W": {
+      "item": "slashblade:proudsoul_sphere"
+    }
+  },
+  "pattern": [
+    "WS ",
+    "PBM",
+    " SR"
+  ],
+  "result": {
+    "item": "slashblade:slashblade"
+  },
+  "show_notification": true
+}

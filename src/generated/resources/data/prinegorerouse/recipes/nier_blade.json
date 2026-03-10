@@ -1,0 +1,38 @@
+{
+  "type": "slashblade:shaped_blade",
+  "blade": "prinegorerouse:nier_blade",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "type": "slashblade:blade",
+      "item": "slashblade:slashblade",
+      "request": {
+        "kill": 250,
+        "name": "slashblade:muramasa",
+        "proud_soul": 4000,
+        "refine": 5
+      }
+    },
+    "P": {
+      "item": "minecraft:emerald"
+    },
+    "R": {
+      "item": "minecraft:ender_pearl"
+    },
+    "S": {
+      "item": "prinegorerouse:chronos"
+    },
+    "W": {
+      "item": "minecraft:ender_eye"
+    }
+  },
+  "pattern": [
+    "RS ",
+    "SBS",
+    " WP"
+  ],
+  "result": {
+    "item": "slashblade:slashblade"
+  },
+  "show_notification": true
+}
