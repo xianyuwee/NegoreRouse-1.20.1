@@ -53,6 +53,10 @@ public class Clear extends SpecialEffect {
     public static void OnSlashBladeHit(SlashBladeEvent.HitEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
         if (state.hasSpecialEffect(NrSpecialEffectsRegistry.Clear.getId())) {
+            // 前置类型检查，非Player直接返回
+            if (!(event.getUser() instanceof Player)) {
+                return;
+            }
             Player player = (Player) event.getUser();
             int level = player.experienceLevel;
             if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.Clear.get(), level)) {

@@ -167,9 +167,9 @@ dependencies {
     // then special handling is done to allow a setup of a vanilla dependency without the use of an external repository.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     //开发环境jei
-    implementation fg.deobf("curse.maven:jei-238222:5576551")
+    implementation fg.deobf("curse.maven:jei-238222:7391695")
     //拔刀剑重锋依赖
-    implementation fg.deobf("curse.maven:slashblade-resharped-1022428:6659951")
+    implementation fg.deobf("curse.maven:slashblade-resharped-1022428:7363505")
     //辅助mod 玉
     implementation fg.deobf("curse.maven:jade-324717:6106101")
     //辅助mod 伤害显示
@@ -177,7 +177,7 @@ dependencies {
     //config
     implementation fg.deobf("curse.maven:yacl-667299:6336646")
     //测试用女仆
-    implementation fg.deobf("curse.maven:touhou-little-maid-355044:6440955")
+    implementation fg.deobf("curse.maven:touhou-little-maid-355044:7510714")
 
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

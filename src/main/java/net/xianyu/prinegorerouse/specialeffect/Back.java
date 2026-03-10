@@ -75,11 +75,16 @@ public class Back extends SpecialEffect{
     @SubscribeEvent
     public static void onSlashBladeHit(SlashBladeEvent.HitEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
+
+        // 第一步：先检查类型，非Player直接返回
+        if (!(event.getUser() instanceof Player)) {
+            return;
+        }
+        // 第二步：安全强转
         Player player = (Player) event.getUser();
         ItemStack offhandItem = player.getOffhandItem();
+
         if(state.hasSpecialEffect(NrSpecialEffectsRegistry.Back.getId())) {
-            if (!(event.getUser() instanceof Player))
-                return;
             Level level1 = player.level();
             int level = player.experienceLevel;
             if(SpecialEffect.isEffective(NrSpecialEffectsRegistry.Back.get(),level) && player.getMainHandItem().getHoverName().equals(event.getBlade().getHoverName())) {

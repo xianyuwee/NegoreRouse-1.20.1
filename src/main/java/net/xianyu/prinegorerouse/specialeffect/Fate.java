@@ -10,6 +10,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -56,7 +57,12 @@ public class Fate extends SpecialEffect {
     @SubscribeEvent
     public static void onSlashBladeHit(SlashBladeEvent.HitEvent event) {
         ISlashBladeState state = event.getSlashBladeState();
-        Player player = (Player) event.getUser();
+        Entity userEntity = event.getUser();
+
+        if (!(userEntity instanceof Player player)) {
+            return;
+        }
+
         ItemStack offhandItem = player.getOffhandItem();
         if (state.hasSpecialEffect(NrSpecialEffectsRegistry.Fate.getId())) {
             int level = player.experienceLevel;

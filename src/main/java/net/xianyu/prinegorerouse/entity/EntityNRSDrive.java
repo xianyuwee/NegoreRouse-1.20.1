@@ -291,19 +291,21 @@ public class EntityNRSDrive extends EntityDrive {
     private void checkCollisions() {
         // 计算新位置
         Vec3 newPos = this.position().add(this.getDeltaMovement());
+        Entity shooter = this.getShooter(); // 获取释放者
 
-        // 检测实体碰撞
+        // 检测实体碰撞 - 新增排除释放者的条件
         EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
                 this.level(), this, this.position(), newPos,
                 this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate(1.0D),
                 entity -> !entity.isSpectator() && entity.isAlive() && entity.isPickable()
+                        && entity != shooter // 关键：排除释放者
         );
 
         if (entityHit != null) {
             this.onHitEntity(entityHit);
         }
 
-        // 检测方块碰撞
+        // 检测方块碰撞（无需修改）
         BlockHitResult blockHit = this.level().clip(new ClipContext(
                 this.position(), newPos,
                 ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this
@@ -440,9 +442,15 @@ public class EntityNRSDrive extends EntityDrive {
 
     protected void onHitEntity(EntityHitResult entityHitResult) {
         Entity targetEntity = entityHitResult.getEntity();
+        Entity shooter = this.getShooter();
+
+        // 关键：如果目标是释放者，直接返回，不处理伤害
+        if (targetEntity == shooter) {
+            return;
+        }
+
         float damageValue = (float) this.getDamage();
 
-        Entity shooter = this.getShooter();
         DamageSource damagesource;
         if (shooter == null) {
             damagesource = this.damageSources().indirectMagic(this, this);

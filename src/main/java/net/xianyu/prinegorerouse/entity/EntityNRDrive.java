@@ -35,6 +35,9 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -160,7 +163,7 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
                 .put("InitialYaw", this.initialYaw)
                 .put("InitialPitch", this.initialPitch)
                 //新增：延迟速度和时间
-                .put("delayTicks", this,getDelayTick())
+                .put("delayTicks", this.getDelayTick())
                 .put("delayspeed", this.getDelaySpeed())
                 .put("indelay", this.isIndelay())// 保存时添加剩余延迟
                 .put("RemainingDelayTicks", this.remainingDelayTicks);
@@ -297,33 +300,33 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
     }
 
     private void checkCollisions() {
-        // 计算新位置
         Vec3 newPos = this.position().add(this.getDeltaMovement());
 
-        // 检测实体碰撞
+        // 实体碰撞检测：排除发射者
         EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
                 this.level(), this, this.position(), newPos,
                 this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate(1.0D),
-                entity -> !entity.isSpectator() && entity.isAlive() && entity.isPickable()
+                entity -> !entity.isSpectator() && entity.isAlive() && entity.isPickable() && entity != this.getShooter()
         );
 
         if (entityHit != null) {
-            // 新增：检查是否在冷却期内
             if (!hitCooldownMap.containsKey(entityHit.getEntity())) {
                 this.onHitEntity(entityHit);
-                // 新增：添加冷却期（10 ticks）
                 hitCooldownMap.put(entityHit.getEntity(), 10);
             }
         }
 
-        // 检测方块碰撞
-        BlockHitResult blockHit = this.level().clip(new ClipContext(
-                this.position(), newPos,
-                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this
-        ));
-
-        if (blockHit.getType() != HitResult.Type.MISS) {
-            this.onHitBlock(blockHit);
+        // 方块碰撞检测（原有逻辑）
+        try {
+            BlockHitResult blockHit = this.level().clip(new ClipContext(
+                    this.position(), newPos,
+                    ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this
+            ));
+            if (blockHit.getType() != HitResult.Type.MISS) {
+                this.onHitBlock(blockHit);
+            }
+        } catch (Exception e) {
+            SlashBlade.LOGGER.error("NRDrive: 方块碰撞检测异常（大概率是传送门方块）", e);
         }
     }
 
@@ -465,11 +468,16 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
         return this.damage;
     }
 
+    // 伤害判定方法（增加兜底防护）
     protected void onHitEntity(EntityHitResult entityHitResult) {
         Entity targetEntity = entityHitResult.getEntity();
-        float damageValue = (float) this.getDamage();
-
         Entity shooter = this.getShooter();
+
+        // 兜底：排除发射者自身（含实体部件）
+        if (targetEntity == shooter) return;
+        if (targetEntity instanceof PartEntity && ((PartEntity<?>) targetEntity).getParent() == shooter) return;
+
+        float damageValue = (float) this.getDamage();
         DamageSource damagesource;
         if (shooter == null) {
             damagesource = this.damageSources().indirectMagic(this, this);
@@ -555,8 +563,34 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
     }
 
     @Override
-    protected void onHitBlock(BlockHitResult blockraytraceresult) {
-        this.setRemoved(RemovalReason.DISCARDED);
+    protected void onHitBlock(BlockHitResult blockHitResult) {
+        try {
+            // 1. 获取击中的方块状态，判断是否为传送门类方块
+            BlockState hitBlockState = level().getBlockState(blockHitResult.getBlockPos());
+            Block hitBlock = hitBlockState.getBlock();
+
+            // 2. 排除下界传送门、末地传送门、末地折跃门等特殊方块
+            if (hitBlock == Blocks.NETHER_PORTAL || hitBlock == Blocks.END_PORTAL || hitBlock == Blocks.END_GATEWAY) {
+                // 传送门方块特殊处理：不移除实体，仅减速+减少生命周期
+                if (!level().isClientSide()) {
+                    this.setDeltaMovement(this.getDeltaMovement().scale(0.8));
+                    this.setLifetime(this.getLifetime() - 1);
+                }
+                return; // 跳过默认移除逻辑
+            }
+
+            // 3. 非传送门方块，仅在服务端执行移除操作（避免客户端同步问题）
+            if (!level().isClientSide()) {
+                this.setRemoved(RemovalReason.DISCARDED);
+            }
+        } catch (Exception e) {
+            // 4. 捕获所有异常，防止崩溃并记录日志
+            SlashBlade.LOGGER.error("NRDrive: 击中方块时发生异常（方块位置：{}）", blockHitResult.getBlockPos(), e);
+            // 异常时安全移除实体
+            if (!level().isClientSide()) {
+                this.setRemoved(RemovalReason.DISCARDED);
+            }
+        }
     }
 
     @Nullable

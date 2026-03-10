@@ -5,6 +5,7 @@ import mods.flammpfeil.slashblade.event.SlashBladeEvent;
 import mods.flammpfeil.slashblade.registry.specialeffects.SpecialEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -21,7 +22,11 @@ public class Phantom extends SpecialEffect {
     @SubscribeEvent
     public static void onSlashBladeHit (SlashBladeEvent.HitEvent event){
         ISlashBladeState state = event.getSlashBladeState();
-        Player player = (Player) event.getUser();
+        Entity entity = event.getUser();
+        if (!(entity instanceof Player player)) {
+            // 非玩家实体（女仆）直接返回，避免类型转换
+            return;
+        }
         int level = player.experienceLevel;
         if (state.hasSpecialEffect(NrSpecialEffectsRegistry.Phantom.getId())) {
             if (SpecialEffect.isEffective((SpecialEffect) NrSpecialEffectsRegistry.Phantom.get(), level)) {
