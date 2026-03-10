@@ -59,7 +59,7 @@ public class DivineCrossSA {
 
             driveEx.setColor(colorCode);
             driveEx.setIsCritical(critical);
-            driveEx.setNoClip(clip);
+            driveEx.setNoClip(false);
             driveEx.setKnockBack(knockback);
             driveEx.setLifetime(lifetime);
             if (playerIn != null) {

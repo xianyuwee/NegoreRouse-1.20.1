@@ -75,6 +75,7 @@ public class NrBladeBuiltInRegistry {
                                 .slashArtsType(NrSlashArtRegistry.ZENITH12TH.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Fate.getId())
                                 .addSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())
+                                .addSpecialEffect(NrSpecialEffectsRegistry.AbsolutePower.getId())
                                 .maxDamage(100)
                                 .build(),
                         List.of(new EnchantmentDefinition(getEnchantmentID(Enchantments.POWER_ARROWS),9),

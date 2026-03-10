@@ -48,6 +48,7 @@ import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -101,6 +102,13 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
     private Vec3 initialDirection = Vec3.ZERO;
     private float initialSpeed = 0;
 
+    // 1. 新增 NoClip 同步数据（类内静态字段）
+    private static final EntityDataAccessor<Boolean> NO_CLIP = SynchedEntityData.defineId(EntityNRDrive.class, EntityDataSerializers.BOOLEAN);
+    // 2. 新增本地字段：旋转稳定阈值（避免Z轴反复震荡）
+    private static final float ROTATE_THRESHOLD = 0.5f;
+    // 3. 新增本地字段：标记是否已锁定旋转（防抖）
+    private boolean isRotationLocked = false;
+
 
     public KnockBacks getKnockBack() {
         return action;
@@ -144,6 +152,7 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
         this.entityData.define(DELAYTICK, delayTicks);
         this.entityData.define(DELAYSPEED, 0.5F);
         this.entityData.define(IN_DELAY, indelay);
+        this.entityData.define(NO_CLIP, false); // 初始化NoClip为false
     }
 
     @Override
@@ -239,70 +248,136 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
     }
 
     @Override
+    public void refreshDimensions() {
+        // 获取渲染用的 baseSize（DivineCrossSA 中设置为 15.0F）
+        float baseSize = this.getBaseSize();
+        // 比例系数：根据渲染缩放比调整（可自行微调分母，比如 10/15/20）
+        // 示例：15.0F 的 baseSize 对应 1.5F 的碰撞箱尺寸（15/10=1.5）
+
+        // 构建新碰撞箱：
+        // - X/Z 轴：从 -sizeScale/2 到 sizeScale/2（与渲染模型中心对齐）
+        // - Y 轴：从 0 到 sizeScale（底部对齐实体位置，修正“高度从中心算”的问题）
+        AABB newBoundingBox = new AABB(
+                -baseSize / 2.0F,  // minX
+                -baseSize,               // minY（底部对齐，不再以中心为中点）
+                -baseSize / 2.0F,  // minZ
+                baseSize / 2.0F,   // maxX
+                baseSize,          // maxY（高度 = sizeScale）
+                baseSize / 2.0F    // maxZ
+        );
+
+        // 设置新碰撞箱并刷新
+        this.setBoundingBox(newBoundingBox);
+        super.refreshDimensions();
+    }
+
+    @Override
     public void tick() {
         refreshFlags();
-
-        // 新增：更新伤害冷却
         updateHitCooldown();
 
-        // 只在首次tick时初始化延迟
-        if (remainingDelayTicks == 0 && getDelayTick() > 0) {
-            remainingDelayTicks = getDelayTick();
-            setInDelay(true);
-
-            this.initialDirection = this.getDeltaMovement().normalize();
+        // ===== 新增：NoClip 核心处理逻辑 =====
+        boolean noClip = this.isNoClip();
+        // 1. NoClip=true 时，完全禁用物理碰撞和自动运动
+        if (noClip) {
+            this.setNoGravity(true); // 强制无重力
+            this.setInvulnerable(true); // 可选：无敌（避免碰撞伤害干扰）
+            this.noPhysics = true; // 禁用MC内置物理更新
+            // 跳过方块/实体碰撞检测（避免物理引擎回退位移）
+            this.verticalCollision = false;
         }
 
+        // ===== 原有延迟逻辑改造（适配NoClip）=====
         if (indelay) {
-            // 延迟期间处理
             remainingDelayTicks--;
 
-            // 保存自定义旋转角度
-            float customYaw = this.getRotationOffset();
-            float customRoll = this.getRotationRoll();
+            // NoClip=true 时：旋转防抖（避免Z轴震荡）
+            if (noClip && !isRotationLocked) {
+                // 计算当前旋转与初始旋转的差值
+                float yawDiff = Math.abs(this.getYRot() - initialYaw);
+                float pitchDiff = Math.abs(this.getXRot() - initialPitch);
+                // 差值小于阈值时，锁定旋转（终止强制设置，避免循环）
+                if (yawDiff < ROTATE_THRESHOLD && pitchDiff < ROTATE_THRESHOLD) {
+                    this.isRotationLocked = true;
+                } else {
+                    // 未锁定时才强制设置旋转（减少震荡）
+                    this.setYRot(initialYaw);
+                    this.yRotO = initialYaw;
+                    this.setXRot(initialPitch);
+                    this.xRotO = initialPitch;
+                }
+            } else if (!noClip) {
+                // NoClip=false 时保留原有旋转逻辑
+                this.setYRot(initialYaw);
+                this.yRotO = initialYaw;
+                this.setXRot(initialPitch);
+                this.xRotO = initialPitch;
+            }
 
-            // 强制应用自定义旋转角度
-            this.setYRot(initialYaw);
-            this.yRotO = initialYaw;
-            this.setXRot(initialPitch);
-            this.xRotO = initialPitch;
-            this.setRotationRoll(customRoll);
-            this.setRotationOffset(customYaw);
+            // NoClip=true 时：强制位移由代码控制，禁用物理插值
+            Vec3 targetMotion = initialDirection.scale(this.getDelaySpeed());
+            if (noClip) {
+                this.setDeltaMovement(targetMotion); // 直接设置，无插值
+            } else {
+                // NoClip=false 时保留原有位移逻辑（带物理插值）
+                this.setDeltaMovement(this.getDeltaMovement().lerp(targetMotion, 0.5));
+            }
 
-            float delaySpeed = this.getDelaySpeed();
-            this.setDeltaMovement(initialDirection.scale(delaySpeed));
-            this.setSpeed(delaySpeed);
+            // NoClip=true 时跳过碰撞检测（避免物理引擎干扰）
+            if (!noClip) {
+                checkCollisions();
+            }
 
-            checkCollisions();
-
-            // 延迟结束处理
             if (remainingDelayTicks <= 0) {
                 setInDelay(false);
                 remainingDelayTicks = -1;
-                // 恢复原始速度
-                this.setDeltaMovement(initialDirection.scale(this.initialSpeed));
+                Vec3 finalMotion = initialDirection.scale(this.initialSpeed);
+                if (noClip) {
+                    this.setDeltaMovement(finalMotion);
+                } else {
+                    this.setDeltaMovement(this.getDeltaMovement().lerp(finalMotion, 0.5));
+                }
+                // 延迟结束后解锁旋转（仅NoClip模式）
+                if (noClip) this.isRotationLocked = false;
             }
         } else {
-            // 正常状态处理
-            float customYaw = this.getRotationOffset();
-            float customRoll = this.getRotationRoll();
+            // 正常状态逻辑改造（适配NoClip）
+            if (noClip && !isRotationLocked) {
+                float yawDiff = Math.abs(this.getYRot() - initialYaw);
+                float pitchDiff = Math.abs(this.getXRot() - initialPitch);
+                if (yawDiff < ROTATE_THRESHOLD && pitchDiff < ROTATE_THRESHOLD) {
+                    this.isRotationLocked = true;
+                } else {
+                    this.setYRot(initialYaw);
+                    this.yRotO = initialYaw;
+                    this.setXRot(initialPitch);
+                    this.xRotO = initialPitch;
+                }
+            } else if (!noClip) {
+                this.setYRot(initialYaw);
+                this.yRotO = initialYaw;
+                this.setXRot(initialPitch);
+                this.xRotO = initialPitch;
+            }
 
-            this.setYRot(initialYaw);
-            this.yRotO = initialYaw;
-            this.setXRot(initialPitch);
-            this.xRotO = initialPitch;
-            this.setRotationRoll(customRoll);
-            this.setRotationOffset(customYaw);
+            if (noClip) {
+                this.setDeltaMovement(initialDirection.scale(this.initialSpeed));
+            }
             this.setSpeed(initialSpeed);
         }
+
+        // ===== 原有逻辑 =====
         super.tick();
         tryDespawn();
     }
 
     private void checkCollisions() {
+        // NoClip=true 时跳过所有碰撞检测
+        if (this.isNoClip()) return;
+
         Vec3 newPos = this.position().add(this.getDeltaMovement());
 
-        // 实体碰撞检测：排除发射者
+        // 原有实体碰撞逻辑
         EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
                 this.level(), this, this.position(), newPos,
                 this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate(1.0D),
@@ -316,7 +391,7 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
             }
         }
 
-        // 方块碰撞检测（原有逻辑）
+        // 原有方块碰撞逻辑
         try {
             BlockHitResult blockHit = this.level().clip(new ClipContext(
                     this.position(), newPos,
@@ -352,7 +427,6 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
         }
     }
 
-    // 新增：发射方法
     @Override
     public void shoot(double x, double y, double z, float velocity, float inaccuracy) {
         Vec3 vec3d = (new Vec3(x, y, z)).normalize().add(
@@ -361,22 +435,34 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
                 this.random.nextGaussian() * 0.007499999832361937 * (double)inaccuracy
         ).scale((double)velocity);
 
+        // NoClip=true 时：直接设置位移，无物理随机偏移
+        if (this.isNoClip()) {
+            vec3d = (new Vec3(x, y, z)).normalize().scale((double)velocity);
+        }
+
         this.setDeltaMovement(vec3d);
         this.initialDirection = vec3d;
         float f = Mth.sqrt((float)vec3d.horizontalDistanceSqr());
-        this.setPos(this.position());
 
+        this.setPos(this.position());
         this.initialSpeed = velocity;
 
-        // 计算并设置初始旋转角度
         this.initialYaw = (float)(Mth.atan2(vec3d.x, vec3d.z) * 57.2957763671875F);
         this.initialPitch = (float)(Mth.atan2(vec3d.y, (double)f) * 57.2957763671875F);
 
-        // 应用初始旋转
-        this.setYRot(initialYaw);
-        this.setXRot(initialPitch);
-        this.yRotO = initialYaw;
-        this.xRotO = initialPitch;
+        // NoClip=true 时：强制锁定初始旋转（无插值）
+        if (this.isNoClip()) {
+            this.setYRot(initialYaw);
+            this.setXRot(initialPitch);
+            this.yRotO = initialYaw;
+            this.xRotO = initialPitch;
+            this.isRotationLocked = true; // 直接锁定，避免震荡
+        } else {
+            this.setYRot(initialYaw);
+            this.setXRot(initialPitch);
+            this.yRotO = initialYaw;
+            this.xRotO = initialPitch;
+        }
     }
 
     public int getColor() {
@@ -419,8 +505,15 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
         return this.getEntityData().get(BASESIZE);
     }
 
+
     public void setBaseSize(float value) {
         this.getEntityData().set(BASESIZE, value);
+        // 关键：更新 baseSize 后同步刷新碰撞箱
+        this.refreshDimensions();
+        // 服务端同步（可选，确保多端碰撞箱一致）
+        if (!this.level().isClientSide()) {
+            this.refreshDimensions();
+        }
     }
 
     public float getSpeed() {
@@ -611,12 +704,14 @@ public class EntityNRDrive extends EntityAbstractSummonedSword {
         return this.getIsCritical();
     }
 
-    public void setNoClip(boolean noClip) {
-        super.setNoClip(noClip);
-    }
-
+    // 新增 NoClip 读写方法
     public boolean isNoClip() {
-        return super.isNoClip();
+        return this.entityData.get(NO_CLIP);
+    }
+    public void setNoClip(boolean noClip) {
+        this.entityData.set(NO_CLIP, noClip);
+        // 关键：设置NoClip时同步禁用物理碰撞（兜底）
+        this.noPhysics = noClip; // MC Entity 内置的noPhysics字段，禁用物理驱动
     }
 
     public void setInDelay(boolean inDelay) {

@@ -44,7 +44,7 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -50F, Vec3.ZERO, false, false, 2.0F);
         }).put(3, (entityIn) -> {
-            Zenith12th.doSlash(entityIn, false, 4F);
+            Zenith12th.doSlash(entityIn, false, 6F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         ZENITH12TH = var1000.register("zenith12th", var1002::build);
@@ -64,7 +64,7 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -30F, Vec3.ZERO, false, false, 2.0F);
         }).put(3, (entityIn) -> {
-            MagneticStormSword.doSlash(entityIn, false, 4.0F);
+            MagneticStormSword.doSlash(entityIn, false, 6.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         STORM_SWORDS = var1000.register("magnetic_storm_sword", var1002::build);
@@ -84,7 +84,7 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -80.0F, Vec3.ZERO,false, false, 0.1);
         }).put(3, (entityIn) -> {
-            DivineCrossSA.doSlash(entityIn, 0.0F, 15, Vec3.ZERO, false, false, 2.0, 3.0F);
+            DivineCrossSA.doSlash(entityIn, 0.0F, 15, Vec3.ZERO, false, true, 2.0, 3.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         DIVINE_CROSS_SA = var1000.register("divine_cross_sa", var1002::build);
@@ -104,7 +104,7 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -80.0F, Vec3.ZERO, false, false,0.1);
         }).put(3, (entityIn) -> {
-            BurningFireSA.doSlash(entityIn,90.0F, 60, Vec3.ZERO, false,false, 2.0F);
+            BurningFireSA.doSlash(entityIn,90.0F, 60, Vec3.ZERO, false,true, 2.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         BURNING_FIRE_SA = var1000.register("burning_fire_sa", var1002::build);
@@ -124,7 +124,7 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -80.0F, Vec3.ZERO,false,false,0.1);
         }).put(3, (entityIn) -> {
-            CosmicLine.doSlash(entityIn, 90.0F,100, Vec3.ZERO, false, false, 2.0F);
+            CosmicLine.doSlash(entityIn, 90.0F,100, Vec3.ZERO, false, true, 2.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         COSMIC_LINE = var1000.register("cosmic_line",var1002::build);

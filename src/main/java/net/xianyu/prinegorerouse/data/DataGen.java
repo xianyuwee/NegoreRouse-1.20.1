@@ -9,27 +9,31 @@ import net.minecraftforge.common.data.DatapackBuiltinEntriesProvider;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.xianyu.prinegorerouse.data.builtin.NRBladeRecipeGen;
 import net.xianyu.prinegorerouse.data.builtin.NrBladeBuiltInRegistry;
 import net.xianyu.prinegorerouse.prinegorerouse;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class DataGen {
 
+    // DataGen.java 的 dataGen 方法中补充代码
     @SubscribeEvent
     public static void dataGen(GatherDataEvent event) {
         DataGenerator dataGenerator = event.getGenerator();
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
         PackOutput packOutput = dataGenerator.getPackOutput();
-        dataGenerator.addProvider(event.includeServer(), new NRBladeRecipeGen(packOutput));
+
+        // 保留拔刀剑注册表生成
         final RegistrySetBuilder NrBladeBuilder = new RegistrySetBuilder().add(SlashBladeDefinition.REGISTRY_KEY,
                 NrBladeBuiltInRegistry::registerAll);
         dataGenerator.addProvider(event.includeServer(),
                 new DatapackBuiltinEntriesProvider(packOutput, lookupProvider, NrBladeBuilder, Set.of(prinegorerouse.MOD_ID)));
+
+        // 新增：注册运行时配方生成器（让 NRBladeRuntimeRecipeRegistry 被数据生成流程引用）
+        if (event.includeServer()) {
+            dataGenerator.addProvider(true, new NRBladeRuntimeRecipeRegistry(packOutput));
+        }
     }
 }
-    

@@ -97,7 +97,7 @@ public class CosmicLine {
                     lineDrive.setOwner(playerIn);
                     lineDrive.setColor(colorCode);
                     lineDrive.setIsCritical(critical);
-                    lineDrive.setNoClip(clip);
+                    lineDrive.setNoClip(false);
                     lineDrive.setKnockBack(knockBacks);
                     lineDrive.setLifetime(lifetime);
                     lineDrive.setRotationRoll(roll);

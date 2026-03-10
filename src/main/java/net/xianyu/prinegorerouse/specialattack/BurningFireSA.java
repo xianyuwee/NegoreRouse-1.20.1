@@ -104,7 +104,7 @@ public class BurningFireSA {
                     driveEx.setDelaySpeed(0.1F);
                     driveEx.setColor(colorCode);
                     driveEx.setIsCritical(critical);
-                    driveEx.setNoClip(clip);
+                    driveEx.setNoClip(false);
                     driveEx.setKnockBack(knockBacks);
                     driveEx.setLifetime(lifetime);
                     driveEx.setRotationRoll(roll);

@@ -43,7 +43,7 @@ public class Zenith12th{
                     es.enableSmartTracking(true);
                     Vec3 offset = new Vec3(playerIn.getEyePosition().x, playerIn.getEyePosition().y, playerIn.getEyePosition().z);
                     EntityEnchantedSword.spawnSwords(playerIn,worldIn,offset, EntityNRBlisteringSword.SpawnMode.RANDOM,1,
-                            true,yaw,pitch,0,0,es.getDamage(),es.getColor(), false, 20 + i);
+                            true,yaw,pitch,0,0,es.getDamage(),es.getColor(), false, 5 + i);
                     es.playSound(SoundEvents.ENDER_DRAGON_FLAP, 0.2F,1.45F);
                 }
             });
