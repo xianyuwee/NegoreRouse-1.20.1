@@ -31,9 +31,9 @@ public class DataGen {
         dataGenerator.addProvider(event.includeServer(),
                 new DatapackBuiltinEntriesProvider(packOutput, lookupProvider, NrBladeBuilder, Set.of(prinegorerouse.MOD_ID)));
 
-        // 新增：注册运行时配方生成器（让 NRBladeRuntimeRecipeRegistry 被数据生成流程引用）
-        if (event.includeServer()) {
-            dataGenerator.addProvider(true, new NRBladeRuntimeRecipeRegistry(packOutput));
-        }
+//        // 新增：注册运行时配方生成器（让 NRBladeRuntimeRecipeRegistry 被数据生成流程引用）
+//        if (event.includeServer()) {
+//            dataGenerator.addProvider(true, new NRBladeRuntimeRecipeRegistry(packOutput));
+//        }
     }
 }

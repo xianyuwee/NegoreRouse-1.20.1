@@ -1,45 +1,36 @@
-[103月2026 18:43:42.148] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgedatauserdev, --assetIndex, 5, --assetsDir, D:\gradle-9.2.1\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.3.0, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mod, prinegorerouse, --all, --output, D:\mcmod\negorerouse\src\generated\resources, --existing, D:\mcmod\negorerouse\src\main\resources, --mixin.config, prinegorerouse.mixins.json]
-[103月2026 18:43:42.155] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 17.0.12 by Eclipse Adoptium; OS Windows 10 arch amd64 version 10.0
-[103月2026 18:43:42.272] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgedatauserdev
-[103月2026 18:43:42.311] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/D:/gradle-9.2.1/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23128!/ Service=ModLauncher Env=CLIENT
-[103月2026 18:43:42.592] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\gradle-9.2.1\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.3.0\d7ebc62120f202109e300e084ca1a31a7b946a62\javafmllanguage-1.20.1-47.3.0.jar is missing mods.toml file
-[103月2026 18:43:42.595] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\gradle-9.2.1\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.3.0\1bf3e845ea0ce750096da8c71c8364b188ab74d4\lowcodelanguage-1.20.1-47.3.0.jar is missing mods.toml file
-[103月2026 18:43:42.597] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\gradle-9.2.1\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.3.0\6093682e943ddccbabf70539319d7f2fe64db2e7\mclanguage-1.20.1-47.3.0.jar is missing mods.toml file
-[103月2026 18:43:42.599] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\gradle-9.2.1\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.3.0\3b6be96aba3e323f3c918e8ef6a96312d82d76ad\fmlcore-1.20.1-47.3.0.jar is missing mods.toml file
-[103月2026 18:43:42.807] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: Found 8 dependencies adding them to mods collection
-[103月2026 18:43:44.235] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
-[103月2026 18:43:44.240] [main/ERROR] [mixin/]: Mixin config yacl.mixins.json does not specify "minVersion" property
-[103月2026 18:43:44.253] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgedatauserdev' with arguments [--gameDir, ., --assetsDir, D:\gradle-9.2.1\caches\forge_gradle\assets, --assetIndex, 5, --mod, prinegorerouse, --all, --output, D:\mcmod\negorerouse\src\generated\resources, --existing, D:\mcmod\negorerouse\src\main\resources]
-[103月2026 18:43:44.324] [main/WARN] [mixin/]: Reference map 'prinegorerouse.refmap.json' for prinegorerouse.mixins.json could not be read. If this is a development environment you can ignore this message
-[103月2026 18:43:44.459] [main/INFO] [mixin/]: Remapping refMap jade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
-[103月2026 18:43:44.461] [main/INFO] [mixin/]: Remapping refMap yet_another_config_lib_v3.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
-[103月2026 18:43:44.462] [main/INFO] [mixin/]: Remapping refMap slashblade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
-[103月2026 18:43:44.476] [main/INFO] [mixin/]: Remapping refMap slashblade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
-[103月2026 18:43:44.478] [main/INFO] [mixin/]: Remapping refMap slashblade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
-[103月2026 18:43:44.480] [main/INFO] [mixin/]: Remapping refMap slashblade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
-[103月2026 18:43:44.482] [main/INFO] [mixin/]: Remapping refMap slashblade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
-[103月2026 18:43:44.485] [main/INFO] [mixin/]: Remapping refMap touhou_little_maid.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
-[103月2026 18:43:45.060] [main/INFO] [net.minecraftforge.data.loading.DatagenModLoader/]: Initializing Data Gatherer for mods [prinegorerouse]
-[103月2026 18:43:48.248] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.3.0, for MC 1.20.1 with MCP 20230612.114412
-[103月2026 18:43:48.250] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.3.0 Initialized
-[103月2026 18:43:48.270] [modloading-worker-0/INFO] [YetAnotherConfigLib/]: Deserializing YACLConfig from 'D:\mcmod\negorerouse\run-data\config\yacl.json5'
-[103月2026 18:43:48.441] [modloading-worker-0/INFO] [net.xianyu.prinegorerouse.data.WeaponSystem/]: 已更新所有武器的实时合成要求，共12种武器
-[103月2026 18:43:48.547] [modloading-worker-0/ERROR] [mezz.jei.common.config.file.ConfigSerializer/]: 'DebugIngredients' is not a valid config key for config category 'debug'.
-Valid keys: [DebugMode, DebugGuis, DebugInputs, debugInfoTooltipsEnabled, CrashingTestItemsEnabled, logSuffixTreeStats]
-Skipping this key.
-Config file: D:\mcmod\negorerouse\run-data\config\jei\jei-debug.ini
-Line #20: "	DebugIngredients = true"
-[103月2026 18:43:48.581] [modloading-worker-0/ERROR] [mezz.jei.common.config.file.ConfigSerializer/]: 'dragDelayInMilliseconds' is not a valid config key for config category 'advanced'.
-Valid keys: [LowMemorySlowSearchEnabled, CatchRenderErrorsEnabled, lookupFluidContentsEnabled, lookupBlockTagsEnabled, showTagRecipesEnabled, showCreativeTabNamesEnabled]
-Skipping this key.
-Config file: D:\mcmod\negorerouse\run-data\config\jei\jei-client.ini
-Line #77: "	dragDelayInMilliseconds = 150"
-[103月2026 18:43:48.590] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager...
-[103月2026 18:43:48.598] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager took 4.340 ms
-[103月2026 18:43:48.598] [modloading-worker-0/INFO] [touhou_little_maid/]: common default pack init start...
-[103月2026 18:43:49.178] [modloading-worker-0/INFO] [touhou_little_maid/]: common default pack init finished, cost time: 573.096 ms
-[103月2026 18:43:49.653] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/D:/gradle-9.2.1/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.3.0_mapped_parchment_2023.09.03-1.20.1/forge-1.20.1-47.3.0_mapped_parchment_2023.09.03-1.20.1.jar%23191!/assets/.mcassetsroot' uses unexpected schema
-[103月2026 18:43:49.654] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/D:/gradle-9.2.1/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.3.0_mapped_parchment_2023.09.03-1.20.1/forge-1.20.1-47.3.0_mapped_parchment_2023.09.03-1.20.1.jar%23191!/data/.mcassetsroot' uses unexpected schema
-[103月2026 18:43:49.884] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Registries
-[103月2026 18:43:49.931] [main/INFO] [net.minecraft.data.DataGenerator/]: Registries finished after 47 ms
-[103月2026 18:43:49.931] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Recipes
+[074月2026 17:52:42.289] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgedatauserdev, --assetIndex, 5, --assetsDir, D:\gradle-9.2.1\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.3.0, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mod, prinegorerouse, --all, --output, D:\mcmod\negorerouse\src\generated\resources, --existing, D:\mcmod\negorerouse\src\main\resources, --mixin.config, prinegorerouse.mixins.json]
+[074月2026 17:52:42.295] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 17.0.12 by Eclipse Adoptium; OS Windows 10 arch amd64 version 10.0
+[074月2026 17:52:42.419] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgedatauserdev
+[074月2026 17:52:42.455] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/D:/gradle-9.2.1/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23128!/ Service=ModLauncher Env=CLIENT
+[074月2026 17:52:42.741] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\gradle-9.2.1\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.3.0\d7ebc62120f202109e300e084ca1a31a7b946a62\javafmllanguage-1.20.1-47.3.0.jar is missing mods.toml file
+[074月2026 17:52:42.743] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\gradle-9.2.1\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.3.0\1bf3e845ea0ce750096da8c71c8364b188ab74d4\lowcodelanguage-1.20.1-47.3.0.jar is missing mods.toml file
+[074月2026 17:52:42.745] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\gradle-9.2.1\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.3.0\6093682e943ddccbabf70539319d7f2fe64db2e7\mclanguage-1.20.1-47.3.0.jar is missing mods.toml file
+[074月2026 17:52:42.748] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\gradle-9.2.1\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.3.0\3b6be96aba3e323f3c918e8ef6a96312d82d76ad\fmlcore-1.20.1-47.3.0.jar is missing mods.toml file
+[074月2026 17:52:42.959] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: Found 8 dependencies adding them to mods collection
+[074月2026 17:52:44.366] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
+[074月2026 17:52:44.371] [main/ERROR] [mixin/]: Mixin config yacl.mixins.json does not specify "minVersion" property
+[074月2026 17:52:44.384] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgedatauserdev' with arguments [--gameDir, ., --assetsDir, D:\gradle-9.2.1\caches\forge_gradle\assets, --assetIndex, 5, --mod, prinegorerouse, --all, --output, D:\mcmod\negorerouse\src\generated\resources, --existing, D:\mcmod\negorerouse\src\main\resources]
+[074月2026 17:52:44.458] [main/WARN] [mixin/]: Reference map 'prinegorerouse.refmap.json' for prinegorerouse.mixins.json could not be read. If this is a development environment you can ignore this message
+[074月2026 17:52:44.606] [main/INFO] [mixin/]: Remapping refMap jade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
+[074月2026 17:52:44.607] [main/INFO] [mixin/]: Remapping refMap yet_another_config_lib_v3.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
+[074月2026 17:52:44.608] [main/INFO] [mixin/]: Remapping refMap slashblade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
+[074月2026 17:52:44.621] [main/INFO] [mixin/]: Remapping refMap slashblade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
+[074月2026 17:52:44.624] [main/INFO] [mixin/]: Remapping refMap slashblade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
+[074月2026 17:52:44.626] [main/INFO] [mixin/]: Remapping refMap slashblade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
+[074月2026 17:52:44.628] [main/INFO] [mixin/]: Remapping refMap slashblade.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
+[074月2026 17:52:44.631] [main/INFO] [mixin/]: Remapping refMap touhou_little_maid.refmap.json using D:\mcmod\negorerouse/build/createSrgToMcp/output.srg
+[074月2026 17:52:45.221] [main/INFO] [net.minecraftforge.data.loading.DatagenModLoader/]: Initializing Data Gatherer for mods [prinegorerouse]
+[074月2026 17:52:48.420] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.3.0, for MC 1.20.1 with MCP 20230612.114412
+[074月2026 17:52:48.421] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.3.0 Initialized
+[074月2026 17:52:48.457] [modloading-worker-0/INFO] [YetAnotherConfigLib/]: Deserializing YACLConfig from 'D:\mcmod\negorerouse\run-data\config\yacl.json5'
+[074月2026 17:52:48.601] [modloading-worker-0/INFO] [net.xianyu.prinegorerouse.data.WeaponSystem/]: 已更新所有武器的实时合成要求，共12种武器
+[074月2026 17:52:48.818] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager...
+[074月2026 17:52:48.820] [modloading-worker-0/INFO] [touhou_little_maid/]: common default pack init start...
+[074月2026 17:52:48.826] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager took 4.006 ms
+[074月2026 17:52:49.524] [modloading-worker-0/INFO] [touhou_little_maid/]: common default pack init finished, cost time: 699.375 ms
+[074月2026 17:52:50.017] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/D:/gradle-9.2.1/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.3.0_mapped_parchment_2023.09.03-1.20.1/forge-1.20.1-47.3.0_mapped_parchment_2023.09.03-1.20.1.jar%23191!/assets/.mcassetsroot' uses unexpected schema
+[074月2026 17:52:50.018] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/D:/gradle-9.2.1/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.3.0_mapped_parchment_2023.09.03-1.20.1/forge-1.20.1-47.3.0_mapped_parchment_2023.09.03-1.20.1.jar%23191!/data/.mcassetsroot' uses unexpected schema
+[074月2026 17:52:50.212] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Registries
+[074月2026 17:52:50.263] [main/INFO] [net.minecraft.data.DataGenerator/]: Registries finished after 51 ms
+[074月2026 17:52:50.263] [main/INFO] [net.minecraft.data.DataGenerator/]: All providers took: 51 ms
+[074月2026 17:52:50.267] [main/INFO] [net.minecraft.data.HashCache/]: Caching: total files: 16, old count: 16, new count: 17, removed stale: 0, written: 0

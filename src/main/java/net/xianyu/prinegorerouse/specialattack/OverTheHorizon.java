@@ -11,19 +11,18 @@ import net.xianyu.prinegorerouse.specialattack.BlackHoleAttack;
 public class OverTheHorizon {
     public OverTheHorizon() {}
 
-    public static void doSlash(LivingEntity playerIn, float roll, int lifetime, double damage, float speed) {
-        doSlash(playerIn, roll, lifetime, damage, KnockBacks.cancel, speed);
+    public static void doSlash(LivingEntity playerIn, float roll, int lifetime, float speed) {
+        doSlash(playerIn, roll, lifetime, KnockBacks.cancel, speed);
     }
 
-    public static void doSlash(LivingEntity playerIn, float roll, int lifetime, double damage, KnockBacks knockBacks, float speed) {
+    public static void doSlash(LivingEntity playerIn, float roll, int lifetime, KnockBacks knockBacks, float speed) {
         int colorCode = playerIn.getMainHandItem().getCapability(ItemSlashBlade.BLADESTATE)
                 .map(ISlashBladeState::getColorCode)
                 .orElse(-13421569);
-        doSlash(playerIn, roll, lifetime, colorCode, damage, knockBacks, speed);
+        doSlash(playerIn, roll, lifetime, colorCode, knockBacks, speed);
     }
 
-    public static void doSlash(LivingEntity playerIn, float roll, int lifetime, int colorCode,
-                               double damage, KnockBacks knockBacks, float speed) {
+    public static void doSlash(LivingEntity playerIn, float roll, int lifetime, int colorCode, KnockBacks knockBacks, float speed) {
         // 移除冗余的客户端判断（单层判断即可）
         if (playerIn.level().isClientSide()) return;
 
@@ -54,7 +53,7 @@ public class OverTheHorizon {
             BlackHoleAttack attack = new BlackHoleAttack();
             attack.setDcount(DCount);
             attack.setScount(SCount);
-            attack.doBlackHoleSlash(playerIn, roll, lifetime, damage, knockBacks, speed);
+            attack.doBlackHoleSlash(playerIn, roll, lifetime, knockBacks, speed);
         });
     }
 }

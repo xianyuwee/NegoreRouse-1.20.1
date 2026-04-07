@@ -44,7 +44,7 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -50F, Vec3.ZERO, false, false, 2.0F);
         }).put(3, (entityIn) -> {
-            Zenith12th.doSlash(entityIn, false, 6F);
+            Zenith12th.doSlash(entityIn, false, 8F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         ZENITH12TH = var1000.register("zenith12th", var1002::build);
@@ -64,7 +64,7 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -30F, Vec3.ZERO, false, false, 2.0F);
         }).put(3, (entityIn) -> {
-            MagneticStormSword.doSlash(entityIn, false, 6.0F);
+            MagneticStormSword.doSlash(entityIn, false, 8.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         STORM_SWORDS = var1000.register("magnetic_storm_sword", var1002::build);
@@ -144,7 +144,7 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -80.0F, Vec3.ZERO,false,false,0.1);
         }).put(3, (entityIn) -> {
-            OverTheHorizon.doSlash(entityIn, 0.0F,100, 2.0F, KnockBacks.cancel, 2.0F);
+            OverTheHorizon.doSlash(entityIn, 0.0F,100, KnockBacks.cancel, 2.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         OVER_THE_HORIZON = var1000.register("over_the_horizon",var1002::build);

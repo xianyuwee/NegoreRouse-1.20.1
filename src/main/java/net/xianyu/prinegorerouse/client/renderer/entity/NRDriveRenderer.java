@@ -2,6 +2,7 @@ package net.xianyu.prinegorerouse.client.renderer.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import mods.flammpfeil.slashblade.SlashBlade;
 import mods.flammpfeil.slashblade.client.renderer.model.BladeModelManager;
 import mods.flammpfeil.slashblade.client.renderer.model.obj.WavefrontObject;
 import mods.flammpfeil.slashblade.client.renderer.util.BladeRenderState;
@@ -36,16 +37,35 @@ public class NRDriveRenderer<T extends EntityNRDrive> extends EntityRenderer<T> 
 
     @Override
     public void render(T entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource bufferSource, int packedLightIn) {
+        // ====================== 渲染调试代码 START ======================
+        // 仅客户端打印，区分渲染帧
+//        String debugMsg = String.format(
+//                "[NRDrive渲染调试] ID:%d | 插值Yaw:%.2f | 插值Pitch:%.2f | 同步InitialYaw:%.2f | InitialPitch:%.2f | 实体原生Yaw:%.2f | 原生Pitch:%.2f | Roll:%.2f | pos_x:%.2f | pos_y:%.2f | pos_z:%.2f |",
+//                entity.getId(),
+//                Mth.rotLerp(partialTicks, entity.yRotO, entity.getYRot()), // 渲染插值角度
+//                Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot()),
+//                entity.getInitialYaw(), // 同步过来的初始旋转（核心）
+//                entity.getInitialPitch(),
+//                entity.getYRot(), // 实体原生旋转
+//                entity.getXRot(),
+//                entity.getRotationRoll(),
+//                entity.getX(),
+//                entity.getY(),
+//                entity.getZ()
+//        );
+//        // 输出到客户端日志/控制台
+//        SlashBlade.LOGGER.info(debugMsg);
+        // ====================== 渲染调试代码 END ======================
+
         try (MSAutoCloser msac = MSAutoCloser.pushMatrix(matrixStack)) {
             float lifetime = entity.getLifetime();
             double deathTime = lifetime;
-            double baseAlpha = (Math.min(deathTime, Math.max(0, (lifetime - (entity.tickCount))))
-                    / deathTime);
+            double baseAlpha = (Math.min(deathTime, Math.max(0, (lifetime - (entity.tickCount)))) / deathTime);
             baseAlpha = Math.max(0, -Math.pow(baseAlpha - 1, 4.0) + 0.75);
 
-            matrixStack.mulPose(
-                    Axis.YP.rotationDegrees(Mth.rotLerp(partialTicks, entity.yRotO, entity.getYRot()) - 90.0F));
-            matrixStack.mulPose(Axis.ZP.rotationDegrees(Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot())));
+            // ====================== 【纯固定旋转】无插值、无原生旋转，永久不抖 ======================
+            matrixStack.mulPose(Axis.YP.rotationDegrees(entity.getInitialYaw() - 90.0F));
+            matrixStack.mulPose(Axis.ZP.rotationDegrees(entity.getInitialPitch()));
             matrixStack.mulPose(Axis.XP.rotationDegrees(entity.getRotationRoll()));
 
             float scale = entity.getBaseSize();
@@ -56,8 +76,7 @@ public class NRDriveRenderer<T extends EntityNRDrive> extends EntityRenderer<T> 
             WavefrontObject model = BladeModelManager.getInstance().getModel(MODEL);
 
             BladeRenderState.setCol(color | alpha);
-            BladeRenderState.renderOverridedLuminous(ItemStack.EMPTY, model, "drive_5ye", TEXTURE, matrixStack, bufferSource,
-                    packedLightIn);
+            BladeRenderState.renderOverridedLuminous(ItemStack.EMPTY, model, "drive_5ye", TEXTURE, matrixStack, bufferSource, packedLightIn);
         }
     }
 }

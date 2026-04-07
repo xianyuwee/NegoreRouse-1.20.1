@@ -40,7 +40,7 @@ public class MagneticStormSword {
                     ns.setColor(colorR + colorG + colorB + 100000 * i);
 
                     EntityNRBlisteringSword.spawnSwords(playerIn, worldIn, offset, EntityNRBlisteringSword.SpawnMode.RANDOM
-                                , 1, false, yaw,pitch,0,0, ns.getDamage(), ns.getColor(), false, 20 + i);
+                                , 1, false, yaw,pitch,0,0, ns.getDamage(), ns.getColor(), true, 20 + i);
 
                 }
             });

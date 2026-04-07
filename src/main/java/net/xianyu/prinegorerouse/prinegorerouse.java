@@ -40,6 +40,7 @@ import net.xianyu.prinegorerouse.registry.NrComboStateRegistry;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 import net.xianyu.prinegorerouse.registry.NrSlashArtRegistry;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
+import net.xianyu.prinegorerouse.event.NRCommands;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -77,6 +78,8 @@ public class prinegorerouse {
 
         modEventBus.addListener(NRBladeRuntimeRecipeRegistry::onCommonSetup);
 
+        MinecraftForge.EVENT_BUS.addListener(this::onWorldLoad);
+
 
         // 注册配置
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, NRConfig.COMMON_CONFIG);
@@ -84,8 +87,12 @@ public class prinegorerouse {
         modEventBus.addListener(this::onConfigLoad);
         modEventBus.addListener(this::onConfigReload);
 
+        // 注册配方系统
+        modEventBus.register(NRBladeRuntimeRecipeRegistry.class);
+
         // 初始化武器系统（加载基础值）
         WeaponSystem.initialize();
+
     }
 
     // 配置加载时更新难度
@@ -104,64 +111,30 @@ public class prinegorerouse {
         }
     }
 
-    // 修正后的配方热刷新方法
-    private void refreshBladeRecipes() {
-        // 1. 获取服务端实例
-        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        if (server == null) {
-            LOGGER.warn("配方刷新失败：未获取到服务端实例");
-            return;
-        }
-        RecipeManager recipeManager = server.getRecipeManager();
-
-        // 2. 过滤并移除当前MOD的旧配方
-        List<Recipe<?>> allRecipes = new ArrayList<>(recipeManager.getRecipes());
-        List<Recipe<?>> modOldRecipes = allRecipes.stream()
-                .filter(recipe -> recipe.getId().getNamespace().equals(MOD_ID))
-                .collect(Collectors.toList());
-
-        // 构造移除旧配方后的新配方列表
-        List<Recipe<?>> remainingRecipes = allRecipes.stream()
-                .filter(recipe -> !recipe.getId().getNamespace().equals(MOD_ID))
-                .collect(Collectors.toList());
-
-        // 3. 生成新配方并添加到列表
-        List<Recipe<?>> newBladeRecipes = new ArrayList<>();
-        NRBladeRuntimeRecipeRegistry.reloadBladeRecipes((finishedRecipe) -> {
-            // 将FinishedRecipe转换为Recipe实例
-            Recipe<?> recipe = RecipeManager.fromJson(finishedRecipe.getId(), finishedRecipe.serializeRecipe());
-            if (recipe != null) {
-                newBladeRecipes.add(recipe);
-            }
-        });
-
-        // 4. 合并剩余配方 + 新配方，批量替换（服务端主线程执行）
-        server.execute(() -> {
-            remainingRecipes.addAll(newBladeRecipes);
-            recipeManager.replaceRecipes(remainingRecipes);
-
-            LOGGER.info("已清除{}个旧配方，重新注册{}个新配方（难度：{}）",
-                    modOldRecipes.size(), newBladeRecipes.size(), WeaponSystem.getDifficulty());
-
-            // 5. 通知所有在线客户端同步配方（替代不存在的 broadcastRecipeUpdates）
-            // 核心：遍历所有在线玩家，发送配方更新数据包
-            List<Recipe<?>> allNewRecipes = new ArrayList<>(recipeManager.getRecipes());
-            ClientboundUpdateRecipesPacket updatePacket = new ClientboundUpdateRecipesPacket(allNewRecipes);
-
-            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                player.connection.send(updatePacket);
-            }
-        });
-    }
-
     // 修改applyDifficultySettings方法，新增配方刷新触发
     private void applyDifficultySettings() {
         int difficulty = NRConfig.DIFFICULTY.get();
         WeaponSystem.setDifficulty(difficulty);
         LOGGER.info("武器系统配置已更新: 难度 = {}", difficulty);
+    }
 
-        // 新增：配置更新时触发配方热刷新
-        refreshBladeRecipes();
+    // 新增方法
+    private void onWorldLoad(net.minecraftforge.event.level.LevelEvent.Load event) {
+        // 只在服务端世界加载时执行
+        if (event.getLevel().isClientSide()) return;
+
+        if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            RecipeManager recipeManager = serverLevel.getServer().getRecipeManager();
+
+            // 检查是否已经注入过（避免每个维度加载都重复注入）
+            // 这里我们用一个简单的静态标记
+            if (!net.xianyu.prinegorerouse.data.NRBladeRuntimeRecipeRegistry.hasInjectedOnce) {
+                net.xianyu.prinegorerouse.data.NRBladeRuntimeRecipeRegistry.hasInjectedOnce = true;
+                serverLevel.getServer().execute(() -> {
+                    net.xianyu.prinegorerouse.data.NRBladeRuntimeRecipeRegistry.refreshRecipes(recipeManager);
+                });
+            }
+        }
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
@@ -201,10 +174,6 @@ public class prinegorerouse {
         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, entityClass.getSimpleName())
                 .replace("entity_", "");
     }
-
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event)
-    {}
 
     @Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents

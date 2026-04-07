@@ -14,6 +14,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
@@ -37,7 +38,7 @@ public class EntityEnchantedSword extends EntityNRBlisteringSword {
         if (!level.isClientSide()) {
             BlockPos blockPos = entity.getOnPos();
             if (this.level().isLoaded(blockPos)) {
-                // 1. 仅创建视觉特效雷电（无实际伤害/掉落物影响）
+// 1. 仅创建视觉特效雷电（无实际伤害/掉落物影响）
                 LightningBolt visualLightning = EntityType.LIGHTNING_BOLT.create(this.level());
                 if (visualLightning != null) {
                     visualLightning.setVisualOnly(true); // 纯视觉，不起火/不掉落物
@@ -52,14 +53,20 @@ public class EntityEnchantedSword extends EntityNRBlisteringSword {
                     this.level().addFreshEntity(visualLightning);
                     this.playSound(SoundEvents.LIGHTNING_BOLT_THUNDER, 5.0F, 1.0F);
 
-                    // 2. 手动处理伤害逻辑（替代原雷电伤害）
+                    // 2. 手动处理伤害逻辑（基于拥有者面板伤害）
                     if (entity instanceof LivingEntity targetEntity) {
                         Entity owner = this.getOwner();
-                        // 防误伤：目标不是释放者自身才造成伤害
-                        if (targetEntity != owner) {
+                        // 防误伤：目标不是释放者自身且拥有者存在才造成伤害
+                        if (targetEntity != owner && owner instanceof LivingEntity livingOwner) {
                             DamageSource damageSource = createAttackerDamageSource(level, owner);
-                            // 施加50点伤害（与原逻辑一致）
-                            targetEntity.hurt(damageSource, 50.0F);
+
+                            // --- 核心修改：获取拥有者面板伤害并应用 ---
+                            // 获取拥有者的基础攻击伤害（面板值）
+                            double baseAttackDamage = livingOwner.getAttributeValue(Attributes.ATTACK_DAMAGE);
+                            // 造成 1 倍面板伤害
+                            float finalDamage = (float) baseAttackDamage;
+
+                            targetEntity.hurt(damageSource, finalDamage);
                             // 保留雷击视觉反馈（无实际伤害）
                             targetEntity.thunderHit((ServerLevel) level, visualLightning);
                         }

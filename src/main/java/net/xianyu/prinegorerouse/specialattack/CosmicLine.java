@@ -89,6 +89,7 @@ public class CosmicLine {
                     // 2. 方向偏移：在水平面上旋转
                     Vec3 directionVec = VectorHelper.rotateVectorAroundY(lookAngle, angleOffset);
 
+                    lineDrive.setNoClip(true);
                     lineDrive.shoot(directionVec.x, directionVec.y, directionVec.z, speed, 0.0F);
                     lineDrive.setDelayTick(15);
                     lineDrive.setDelaySpeed(0.1F);
@@ -97,10 +98,10 @@ public class CosmicLine {
                     lineDrive.setOwner(playerIn);
                     lineDrive.setColor(colorCode);
                     lineDrive.setIsCritical(critical);
-                    lineDrive.setNoClip(false);
                     lineDrive.setKnockBack(knockBacks);
                     lineDrive.setLifetime(lifetime);
                     lineDrive.setRotationRoll(roll);
+                    lineDrive.setHitboxScale(5);
 
 
                     if (playerIn != null) {

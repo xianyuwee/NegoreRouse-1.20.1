@@ -1,9 +1,10 @@
 package net.xianyu.prinegorerouse.entity;
 
+import mods.flammpfeil.slashblade.SlashBlade;
 import mods.flammpfeil.slashblade.ability.StunManager;
 import mods.flammpfeil.slashblade.capability.concentrationrank.ConcentrationRankCapabilityProvider;
 import mods.flammpfeil.slashblade.capability.concentrationrank.IConcentrationRank;
-import mods.flammpfeil.slashblade.entity.EntityAbstractSummonedSword;
+import mods.flammpfeil.slashblade.capability.slashblade.ISlashBladeState;
 import mods.flammpfeil.slashblade.entity.EntityDrive;
 import mods.flammpfeil.slashblade.entity.Projectile;
 import mods.flammpfeil.slashblade.item.ItemSlashBlade;
@@ -44,6 +45,7 @@ import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -53,6 +55,7 @@ import static mods.flammpfeil.slashblade.SlashBladeConfig.SLASHBLADE_DAMAGE_MULT
 
 //用原版模型
 public class EntityNRSDrive extends EntityDrive {
+    // ========== 关键修改1：新增InitialYaw/Pitch的同步器 ==========
     private static final EntityDataAccessor<Integer> COLOR = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> RANK = SynchedEntityData.defineId(EntityNRSDrive.class,
@@ -73,26 +76,23 @@ public class EntityNRSDrive extends EntityDrive {
             EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> IN_DELAY = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.BOOLEAN);
-
-    private static final EntityDataAccessor<Integer> FLAGS = SynchedEntityData.defineId(EntityNRSDrive.class, EntityDataSerializers.INT);;
+    private static final EntityDataAccessor<Integer> FLAGS = SynchedEntityData.defineId(EntityNRSDrive.class, EntityDataSerializers.INT);
+    // 新增：InitialYaw/Pitch同步器
+    private static final EntityDataAccessor<Float> INITIAL_YAW = SynchedEntityData.defineId(EntityNRSDrive.class,
+            EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> INITIAL_PITCH = SynchedEntityData.defineId(EntityNRSDrive.class,
+            EntityDataSerializers.FLOAT);
 
     private KnockBacks action = KnockBacks.cancel;
-
     private double damage = 7.0D;
 
-    // 新增：存储初始旋转角度
-    private float initialYaw;
-    private float initialPitch;
-
+    // 改为通过同步器访问，不再用普通字段
     private int delayTicks;
-    // 新增字段存储初始速度和剩余延迟
     private Vec3 initialVelocity;
     private int remainingDelayTicks;
-
     private boolean indelay = true;
     private Vec3 initialDirection = Vec3.ZERO;
     private float initialSpeed = 0;
-
 
     public KnockBacks getKnockBack() {
         return action;
@@ -113,8 +113,9 @@ public class EntityNRSDrive extends EntityDrive {
         super(entityTypeIn, worldIn);
         this.setNoGravity(true);
         this.delayTicks = this.getDelayTick();
-        this.initialYaw = this.getYRot();
-        this.initialPitch = this.getXRot();
+        // 初始化同步数据
+        this.setInitialYaw(this.getYRot());
+        this.setInitialPitch(this.getXRot());
         this.initialSpeed = this.getSpeed();
     }
 
@@ -136,13 +137,17 @@ public class EntityNRSDrive extends EntityDrive {
         this.entityData.define(DELAYTICK, delayTicks);
         this.entityData.define(DELAYSPEED, 0.5F);
         this.entityData.define(IN_DELAY, indelay);
+        // 初始化新增的同步数据
+        this.entityData.define(INITIAL_YAW, 0.0f);
+        this.entityData.define(INITIAL_PITCH, 0.0f);
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag compound) {
+    public void addAdditionalSaveData(@NotNull CompoundTag compound) {
         super.addAdditionalSaveData(compound);
 
-        NBTHelper.getNBTCoupler(compound).put("RotationOffset", this.getRotationOffset())
+        NBTHelper.getNBTCoupler(compound)
+                .put("RotationOffset", this.getRotationOffset())
                 .put("RotationRoll", this.getRotationRoll())
                 .put("BaseSize", this.getBaseSize())
                 .put("Speed", this.getSpeed())
@@ -151,19 +156,16 @@ public class EntityNRSDrive extends EntityDrive {
                 .put("damage", this.damage)
                 .put("Lifetime", this.getLifetime())
                 .put("Knockback", this.getKnockBack().ordinal())
-                // 新增：保存初始旋转角度
-                .put("InitialYaw", this.initialYaw)
-                .put("InitialPitch", this.initialPitch)
-                //新增：延迟速度和时间
-                .put("delayTicks", this,getDelayTick())
+                .put("InitialYaw", this.getInitialYaw())  // 保存同步的InitialYaw
+                .put("InitialPitch", this.getInitialPitch())  // 保存同步的InitialPitch
+                .put("delayTicks", this.getDelayTick())
                 .put("delayspeed", this.getDelaySpeed())
-                .put("indelay", this.isIndelay())// 保存时添加剩余延迟
+                .put("indelay", this.isIndelay())
                 .put("RemainingDelayTicks", this.remainingDelayTicks);
-
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag compound) {
+    public void readAdditionalSaveData(@NotNull CompoundTag compound) {
         super.readAdditionalSaveData(compound);
 
         NBTHelper.getNBTCoupler(compound)
@@ -176,27 +178,32 @@ public class EntityNRSDrive extends EntityDrive {
                 .get("damage", (Double v) -> this.damage = v, this.damage)
                 .get("Lifetime", this::setLifetime)
                 .get("Knockback", this::setKnockBackOrdinal)
-                // 新增：读取初始旋转角度
-                .get("InitialYaw", this::setInitialYaw, 0f)
-                .get("InitialPitch", this::setInitialPitch, 0f)
+                .get("InitialYaw", this::setInitialYaw, 0f)  // 读取同步的InitialYaw
+                .get("InitialPitch", this::setInitialPitch, 0f)  // 读取同步的InitialPitch
                 .get("delayTicks", this::setDelayTick, 20)
                 .get("delayspeed", this::setDelaySpeed, 0.5f)
-                // 加载时读取剩余延迟
                 .get("RemainingDelayTicks", (Integer v) -> this.remainingDelayTicks = v, 0);
     }
 
-    // 新增：设置初始偏航角
-    public void setInitialYaw(float value) {
-        this.initialYaw = value;
+    // ========== 关键修改2：InitialYaw/Pitch的get/set方法（关联同步器） ==========
+    public float getInitialYaw() {
+        return this.entityData.get(INITIAL_YAW);
     }
 
-    // 新增：设置初始俯仰角
+    public void setInitialYaw(float value) {
+        this.entityData.set(INITIAL_YAW, value);
+    }
+
+    public float getInitialPitch() {
+        return this.entityData.get(INITIAL_PITCH);
+    }
+
     public void setInitialPitch(float value) {
-        this.initialPitch = value;
+        this.entityData.set(INITIAL_PITCH, value);
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
@@ -207,7 +214,6 @@ public class EntityNRSDrive extends EntityDrive {
         if (Double.isNaN(d0)) {
             d0 = 1.0D;
         }
-
         d0 = d0 * 64.0D * getViewScale();
         return distance < d0 * d0;
     }
@@ -215,10 +221,9 @@ public class EntityNRSDrive extends EntityDrive {
     private void refreshFlags() {
         int newValue;
         if (this.level().isClientSide()) {
-            newValue = (Integer)this.entityData.get(FLAGS);
+            newValue = this.entityData.get(FLAGS);
             if (this.intFlags != newValue) {
                 this.intFlags = newValue;
-
             }
         } else {
             newValue = EnumSetConverter.convertToInt(this.flags);
@@ -227,7 +232,6 @@ public class EntityNRSDrive extends EntityDrive {
                 this.intFlags = newValue;
             }
         }
-
     }
 
     @Override
@@ -238,11 +242,13 @@ public class EntityNRSDrive extends EntityDrive {
         if (remainingDelayTicks == 0 && getDelayTick() > 0) {
             remainingDelayTicks = getDelayTick();
             setInDelay(true);
-
             this.initialDirection = this.getDeltaMovement().normalize();
         }
 
-        if (indelay) {
+        // ========== 关键修改3：调整执行顺序，先执行父类tick，再强制设置旋转 ==========
+        super.tick();
+
+        if (isIndelay()) {
             // 延迟期间处理
             remainingDelayTicks--;
 
@@ -250,7 +256,9 @@ public class EntityNRSDrive extends EntityDrive {
             float customYaw = this.getRotationOffset();
             float customRoll = this.getRotationRoll();
 
-            // 强制应用自定义旋转角度
+            // 强制应用同步的初始旋转角度
+            float initialYaw = this.getInitialYaw();
+            float initialPitch = this.getInitialPitch();
             this.setYRot(initialYaw);
             this.yRotO = initialYaw;
             this.setXRot(initialPitch);
@@ -276,6 +284,9 @@ public class EntityNRSDrive extends EntityDrive {
             float customYaw = this.getRotationOffset();
             float customRoll = this.getRotationRoll();
 
+            // 强制应用同步的初始旋转角度
+            float initialYaw = this.getInitialYaw();
+            float initialPitch = this.getInitialPitch();
             this.setYRot(initialYaw);
             this.yRotO = initialYaw;
             this.setXRot(initialPitch);
@@ -284,7 +295,20 @@ public class EntityNRSDrive extends EntityDrive {
             this.setRotationOffset(customYaw);
             this.setSpeed(initialSpeed);
         }
-        super.tick();
+
+        String debugMsg = String.format(
+                "[NRDrive渲染调试] ID:%d | 同步InitialYaw:%.2f | InitialPitch:%.2f | 实体原生Yaw:%.2f | 原生Pitch:%.2f | Roll:%.2f | pos_x:%.2f | pos_y:%.2f | pos_z:%.2f |",
+                this.getId(),
+                this.getInitialYaw(), // 改用同步器获取
+                this.getInitialPitch(),
+                this.getYRot(),
+                this.getXRot(),
+                this.getRotationRoll(),
+                this.getX(),
+                this.getY(),
+                this.getZ()
+        );
+        SlashBlade.LOGGER.info(debugMsg);
         tryDespawn();
     }
 
@@ -293,19 +317,19 @@ public class EntityNRSDrive extends EntityDrive {
         Vec3 newPos = this.position().add(this.getDeltaMovement());
         Entity shooter = this.getShooter(); // 获取释放者
 
-        // 检测实体碰撞 - 新增排除释放者的条件
+        // 检测实体碰撞 - 排除释放者
         EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
                 this.level(), this, this.position(), newPos,
                 this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate(1.0D),
                 entity -> !entity.isSpectator() && entity.isAlive() && entity.isPickable()
-                        && entity != shooter // 关键：排除释放者
+                        && entity != shooter
         );
 
         if (entityHit != null) {
             this.onHitEntity(entityHit);
         }
 
-        // 检测方块碰撞（无需修改）
+        // 检测方块碰撞
         BlockHitResult blockHit = this.level().clip(new ClipContext(
                 this.position(), newPos,
                 ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this
@@ -315,7 +339,6 @@ public class EntityNRSDrive extends EntityDrive {
             this.onHitBlock(blockHit);
         }
     }
-
 
     protected void tryDespawn() {
         if (!this.level().isClientSide()) {
@@ -340,17 +363,20 @@ public class EntityNRSDrive extends EntityDrive {
 
         this.initialSpeed = velocity;
 
-        // 计算并设置初始旋转角度
-        this.initialYaw = (float)(Mth.atan2(vec3d.x, vec3d.z) * 57.2957763671875F);
-        this.initialPitch = (float)(Mth.atan2(vec3d.y, (double)f) * 57.2957763671875F);
+        // 计算并设置同步的初始旋转角度
+        float initialYaw = (float)(Mth.atan2(vec3d.x, vec3d.z) * 57.2957763671875F);
+        float initialPitch = (float)(Mth.atan2(vec3d.y, (double)f) * 57.2957763671875F);
+        this.setInitialYaw(initialYaw); // 存入同步器
+        this.setInitialPitch(initialPitch);
 
-        // 应用初始旋转
+        // 立即应用初始旋转
         this.setYRot(initialYaw);
         this.setXRot(initialPitch);
         this.yRotO = initialYaw;
         this.xRotO = initialPitch;
     }
 
+    // ========== 原有get/set方法保持不变 ==========
     public int getColor() {
         return this.getEntityData().get(COLOR);
     }
@@ -424,10 +450,8 @@ public class EntityNRSDrive extends EntityDrive {
 
     public List<MobEffectInstance> getPotionEffects() {
         List<MobEffectInstance> effects = PotionUtils.getAllEffects(this.getPersistentData());
-
         if (effects.isEmpty())
             effects.add(new MobEffectInstance(MobEffects.POISON, 1, 1));
-
         return effects;
     }
 
@@ -444,24 +468,24 @@ public class EntityNRSDrive extends EntityDrive {
         Entity targetEntity = entityHitResult.getEntity();
         Entity shooter = this.getShooter();
 
-        // 关键：如果目标是释放者，直接返回，不处理伤害
+        // 排除释放者
         if (targetEntity == shooter) {
             return;
         }
 
         float damageValue = (float) this.getDamage();
-
         DamageSource damagesource;
+
         if (shooter == null) {
             damagesource = this.damageSources().indirectMagic(this, this);
         } else {
             damagesource = this.damageSources().indirectMagic(this, shooter);
-            if (shooter instanceof LivingEntity) {
+            if (shooter instanceof LivingEntity living) {
                 Entity hits = targetEntity;
                 if (targetEntity instanceof PartEntity) {
                     hits = ((PartEntity<?>) targetEntity).getParent();
                 }
-                ((LivingEntity) shooter).setLastHurtMob(hits);
+                living.setLastHurtMob(hits);
             }
         }
 
@@ -472,7 +496,7 @@ public class EntityNRSDrive extends EntityDrive {
 
         targetEntity.invulnerableTime = 0;
         if (this.getOwner() instanceof LivingEntity living) {
-            damageValue *= living.getAttributeValue(Attributes.ATTACK_DAMAGE);
+            damageValue *= (float) living.getAttributeValue(Attributes.ATTACK_DAMAGE);
 
             // 评分等级加成
             if (living instanceof Player player) {
@@ -485,7 +509,7 @@ public class EntityNRSDrive extends EntityDrive {
 
                 if (IConcentrationRank.ConcentrationRanks.S.level <= rankBonus.level) {
                     int refine = player.getMainHandItem().getCapability(ItemSlashBlade.BLADESTATE)
-                            .map(rp -> rp.getRefine())
+                            .map(ISlashBladeState::getRefine)
                             .orElse(0);
                     int level = player.experienceLevel;
                     rankDamageBonus = (float) Math.max(
@@ -496,9 +520,8 @@ public class EntityNRSDrive extends EntityDrive {
                 damageValue += rankDamageBonus;
             }
 
-            damageValue *= AttackManager.getSlashBladeDamageScale(living) * SLASHBLADE_DAMAGE_MULTIPLIER.get();
+            damageValue *= (float) (AttackManager.getSlashBladeDamageScale(living) * SLASHBLADE_DAMAGE_MULTIPLIER.get());
 
-            // 使用父类的isCritical方法
             if (this.isCritical()) {
                 damageValue += this.random.nextInt((Mth.ceil(damageValue) / 2 + 2));
             }
@@ -510,10 +533,9 @@ public class EntityNRSDrive extends EntityDrive {
                 hits = ((PartEntity<?>) targetEntity).getParent();
             }
 
-            if (hits instanceof LivingEntity) {
-                LivingEntity targetLivingEntity = (LivingEntity) hits;
-
+            if (hits instanceof LivingEntity targetLivingEntity) {
                 StunManager.setStun(targetLivingEntity);
+
                 if (!this.level().isClientSide() && shooter instanceof LivingEntity) {
                     EnchantmentHelper.doPostHurtEffects(targetLivingEntity, shooter);
                     EnchantmentHelper.doPostDamageEffects((LivingEntity) shooter, targetLivingEntity);
@@ -521,7 +543,7 @@ public class EntityNRSDrive extends EntityDrive {
 
                 affectEntity(targetLivingEntity, getPotionEffects(), 1.0f);
 
-                if (shooter != null && targetLivingEntity != shooter && targetLivingEntity instanceof Player
+                if (targetLivingEntity != shooter && targetLivingEntity instanceof Player
                         && shooter instanceof ServerPlayer) {
                     ((ServerPlayer) shooter).playNotifySound(this.getHitEntityPlayerSound(), SoundSource.PLAYERS, 0.18F,
                             0.45F);
@@ -548,7 +570,6 @@ public class EntityNRSDrive extends EntityDrive {
                 });
     }
 
-    // 使用父类方法操作标志位
     public void setCritical(boolean critical) {
         this.setIsCritical(critical);
     }
@@ -567,10 +588,11 @@ public class EntityNRSDrive extends EntityDrive {
 
     public void setInDelay(boolean inDelay) {
         this.indelay = inDelay;
+        this.entityData.set(IN_DELAY, inDelay); // 同步IN_DELAY状态
     }
 
     public boolean isIndelay() {
-        return this.indelay;
+        return this.entityData.get(IN_DELAY); // 从同步器读取
     }
 
     public int getDelayTick() {
@@ -578,7 +600,6 @@ public class EntityNRSDrive extends EntityDrive {
     }
 
     public void setDelayTick(int tick) {
-        // 如果尚未开始延迟，更新剩余时间
         if (this.remainingDelayTicks <= 0) {
             this.remainingDelayTicks = tick;
         }
@@ -590,6 +611,6 @@ public class EntityNRSDrive extends EntityDrive {
     }
 
     public void setDelaySpeed(float delaySpeed) {
-        this.getEntityData().set(DELAYSPEED,delaySpeed);
+        this.getEntityData().set(DELAYSPEED, delaySpeed);
     }
 }

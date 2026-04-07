@@ -92,7 +92,7 @@ public class Fate extends SpecialEffect {
                     ss.setCenterPosition(player.getEyePosition().add(xOffset, yOffset, zOffset));
                     Vec3 offset = new Vec3(player.getEyePosition().x, player.getEyePosition().y, player.getEyePosition().z);
                     EntityEnchantedSword.spawnSwords(player,worldIn,offset, EntityNRBlisteringSword.SpawnMode.RANDOM,1,
-                            true,0,0,0,5,ss.getDamage(),ss.getColor(), false, ss.getDelay());
+                            true,0,0,0,5,ss.getDamage(),ss.getColor(), true, ss.getDelay());
                     player.playSound(SoundEvents.ENDER_DRAGON_FLAP, 0.2F,1.45F);
                 }
             }
@@ -116,7 +116,7 @@ public class Fate extends SpecialEffect {
                 ss.setCenterPosition(player.getEyePosition().add(xOffset, yOffset, zOffset));
                 Vec3 offset = new Vec3(player.getEyePosition().x, player.getEyePosition().y, player.getEyePosition().z);
                 EntityEnchantedSword.spawnSwords(player,worldIn,offset, EntityNRBlisteringSword.SpawnMode.RANDOM,1,
-                        true,0,0,0,5,ss.getDamage(),ss.getColor(), false, ss.getDelay());
+                        true,0,0,0,5,ss.getDamage(),ss.getColor(), true, ss.getDelay());
                 player.playSound(SoundEvents.ENDER_DRAGON_FLAP, 0.2F,1.45F);
             }
         }

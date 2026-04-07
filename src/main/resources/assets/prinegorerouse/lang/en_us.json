@@ -16,6 +16,7 @@
   "item.prinegorerouse.aeon_blade": "§6柯罗诺斯「万古琨矇」",
   "item.prinegorerouse.ananke_blade": "§4宿命变星·阿南刻§6「天数裁定」",
   "item.prinegorerouse.aritemis_blade": "§4阿尔忒弥斯§1「影月」",
+  "item.prinegorerouse.aritemiss_blade" : "§6阿尔忒弥斯§a「耀月」",
   "item.prinegorerouse.chaos_blade": "§4卡俄斯§0「溟濛万象」",
   "item.prinegorerouse.chronossy_blade": "§4柯罗诺斯§k「始源之枪」",
   "item.prinegorerouse.deligun_blade": "§4德雷格兰§9「圣契」",
@@ -23,6 +24,13 @@
   "item.prinegorerouse.nyx_blade": "§4聚变之星·倪克斯§f「辰宿瞬变」",
   "item.prinegorerouse.hercules_blade": "§4海格力斯§e「闪耀之星」",
   "item.prinegorerouse.antauge_blade": "§4安托则斯§d「冥光万法」",
+
+  "slash_art.prinegorerouse.zenith12th": "§6§l决·苍穹之十二连",
+  "slash_art.prinegorerouse.magnetic_storm_sword": "§a§l磁暴幻影剑-原型",
+  "slash_art.prinegorerouse.divine_cross_sa": "§f§l断·「天光绝影的白昼肇开线」",
+  "slash_art.prinegorerouse.burning_fire_sa": "§4§l绝·「焚驱万海的拂晓水平线」",
+  "slash_art.prinegorerouse.cosmic_line": "§5§l极·「轰震星宿的环宇天界线」",
+  "slash_art.prinegorerouse.over_the_horizon":"§b§l空·「织罗空间的维度平行线」",
 
 
   "se.prinegorerouse.oracle": "§a§l神谕",

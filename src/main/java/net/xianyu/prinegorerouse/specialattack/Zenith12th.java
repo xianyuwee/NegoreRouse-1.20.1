@@ -30,20 +30,19 @@ public class Zenith12th{
                     EntityEnchantedSword es = new EntityEnchantedSword(NrEntitiesRegistry.Enchanted_Sword, worldIn);
                     es.setOwner(playerIn);
                     if (state.getKillCount() >= 200) {
-                        es.setDamage(state.getBaseAttackModifier() * 1.2);
+                        es.setDamage(state.getBaseAttackModifier() * 6);
                     } else if (state.getKillCount()>=100) {
-                        es.setDamage(state.getBaseAttackModifier() * 0.8);
+                        es.setDamage(state.getBaseAttackModifier() * 4);
                     } else {
-                        es.setDamage(state.getBaseAttackModifier() * 0.5);
+                        es.setDamage(state.getBaseAttackModifier() * 3);
                     }
                     es.setSpeed(speed);
-                    es.setNoClip(true);
                     es.setIsCritical(critical);
                     es.setColor(16766720);
                     es.enableSmartTracking(true);
                     Vec3 offset = new Vec3(playerIn.getEyePosition().x, playerIn.getEyePosition().y, playerIn.getEyePosition().z);
                     EntityEnchantedSword.spawnSwords(playerIn,worldIn,offset, EntityNRBlisteringSword.SpawnMode.RANDOM,1,
-                            true,yaw,pitch,0,0,es.getDamage(),es.getColor(), false, 5 + i);
+                            true,yaw,pitch,0,0,es.getDamage(),es.getColor(), true, 5 + i/2);
                     es.playSound(SoundEvents.ENDER_DRAGON_FLAP, 0.2F,1.45F);
                 }
             });

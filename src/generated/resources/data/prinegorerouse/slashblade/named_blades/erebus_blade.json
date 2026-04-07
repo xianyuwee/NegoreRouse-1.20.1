@@ -37,7 +37,7 @@
   "render": {
     "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/erebus/erebus.obj",
-    "summon_sword_color": 10690205,
+    "summon_sword_color": -25536000,
     "texture": "prinegorerouse:model/named/custom/erebus/erebus.png"
   }
 }

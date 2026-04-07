@@ -10,8 +10,10 @@ import mods.flammpfeil.slashblade.registry.slashblade.SlashBladeDefinition;
 import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.xianyu.prinegorerouse.prinegorerouse;
 import net.xianyu.prinegorerouse.registry.NrSlashArtRegistry;
@@ -25,6 +27,7 @@ public class NrBladeBuiltInRegistry {
     public static final ResourceKey<SlashBladeDefinition> ANANKE_BLADE = register("ananke_blade");
     public static final ResourceKey<SlashBladeDefinition> ANTAUGE_BLADE = register("antauge_blade");
     public static final ResourceKey<SlashBladeDefinition> ARITEMIS_BLADE = register("aritemis_blade");
+    public static final ResourceKey<SlashBladeDefinition> ARITEMIS_S_BLADE = register("aritemiss_blade");
     public static final ResourceKey<SlashBladeDefinition> CHAOS_BLADE = register("chaos_blade");
     public static final ResourceKey<SlashBladeDefinition> CHRONOS_BLADE = register("chronos_blade");
     public static final ResourceKey<SlashBladeDefinition> CHRONOSN_BLADE = register("chronosn_blade");
@@ -42,6 +45,21 @@ public class NrBladeBuiltInRegistry {
     //RNINJA: 左上到右下斜插
     //KATANA: 腰插(刀刃向上)
     //NONE: ?
+
+    //耀月的配置
+    static NRPropertiesDefinition nrProps = NRPropertiesDefinition.NRBuilder.newNRInstance()
+            .baseAttackModifier(36.0F)
+            .defaultSwordType(List.of(SwordType.BEWITCHED))
+            .slashArtsType(NrSlashArtRegistry.STORM_SWORDS.getId())
+            .addSpecialEffect(NrSpecialEffectsRegistry.Clear.getId())
+            .addSpecialEffect(NrSpecialEffectsRegistry.Oracle.getId())
+            .maxDamage(100)
+            // 新增能源配置
+            .enableEnergySlot(true)
+            .maxEnergy(200000000)
+            .energyPerUse(20000)
+            .build();
+
 
     public static void registerAll(BootstapContext<SlashBladeDefinition> bootstrap) {
         bootstrap.register(AEON_BLADE,
@@ -64,7 +82,7 @@ public class NrBladeBuiltInRegistry {
         bootstrap.register(ANANKE_BLADE,
                 new SlashBladeDefinition(prinegorerouse.prefix("ananke_blade"),
                         RenderDefinition.Builder.newInstance()
-                                .effectColor(25518515)
+                                .effectColor(16766720)
                                 .textureName(prinegorerouse.prefix("model/named/custom/ananke/ananke.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/ananke/ananke_blade.obj"))
                                 .standbyRenderType(CarryType.KATANA)
@@ -123,6 +141,22 @@ public class NrBladeBuiltInRegistry {
                         List.of(new EnchantmentDefinition(getEnchantmentID(Enchantments.POWER_ARROWS),5),
                                 new EnchantmentDefinition(getEnchantmentID(Enchantments.UNBREAKING),3),
                                 new EnchantmentDefinition(getEnchantmentID(Enchantments.FISHING_LUCK),5))));
+
+        bootstrap.register(ARITEMIS_S_BLADE,
+                new SlashBladeDefinition(prinegorerouse.prefix("aritemiss_blade"),
+                        prinegorerouse.prefix("aritemiss_blade"),
+                        RenderDefinition.Builder.newInstance()
+                                .effectColor(32178170)
+                                .textureName(prinegorerouse.prefix("model/named/custom/aritemiss/artemiss_blade.png"))
+                                .modelName(prinegorerouse.prefix("model/named/custom/aritemiss/artemiss_blade.obj"))
+                                .standbyRenderType(CarryType.KATANA)
+                                .build(),
+                        nrProps.getOriginalProps(),
+                        List.of(new EnchantmentDefinition(getEnchantmentID(Enchantments.UNBREAKING),4),
+                                new EnchantmentDefinition(getEnchantmentID(Enchantments.POWER_ARROWS),7),
+                                new EnchantmentDefinition(getEnchantmentID(Enchantments.FISHING_LUCK),1),
+                                new EnchantmentDefinition(getEnchantmentID(Enchantments.BANE_OF_ARTHROPODS),3),
+                                new EnchantmentDefinition(getEnchantmentID(Enchantments.FIRE_ASPECT), 3))));
 
         bootstrap.register(CHAOS_BLADE,
                 new SlashBladeDefinition(prinegorerouse.prefix("chaos_blade"),
@@ -220,7 +254,7 @@ public class NrBladeBuiltInRegistry {
         bootstrap.register(EREBUS_BLADE,
                 new SlashBladeDefinition(prinegorerouse.prefix("erebus_blade"),
                         RenderDefinition.Builder.newInstance()
-                                .effectColor(10690205)
+                                .effectColor(-25536000)
                                 .textureName(prinegorerouse.prefix("model/named/custom/erebus/erebus.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/erebus/erebus.obj"))
                                 .standbyRenderType(CarryType.KATANA)
@@ -303,7 +337,7 @@ public class NrBladeBuiltInRegistry {
         bootstrap.register(PROTOGENOI_BLADE,
                 new SlashBladeDefinition(prinegorerouse.prefix("protogenoi_blade"),
                         RenderDefinition.Builder.newInstance()
-                                .effectColor(20832144)
+                                .effectColor(-255000255)
                                 .textureName(prinegorerouse.prefix("model/named/custom/protogenoi/protogenoi.png"))
                                 .modelName(prinegorerouse.prefix("model/named/custom/protogenoi/protogenoi.obj"))
                                 .standbyRenderType(CarryType.KATANA)

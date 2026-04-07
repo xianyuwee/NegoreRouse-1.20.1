@@ -42,7 +42,7 @@
   "render": {
     "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/protogenoi/protogenoi.obj",
-    "summon_sword_color": 20832144,
+    "summon_sword_color": -255000255,
     "texture": "prinegorerouse:model/named/custom/protogenoi/protogenoi.png"
   }
 }

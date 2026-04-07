@@ -57,7 +57,7 @@ public class BurningFireSA {
 
                 for (int i = 1; i <= count; i++) {
                     EntityFireDrive driveEx = new EntityFireDrive(NrEntitiesRegistry.FireDrive, world);
-                    world.addFreshEntity(driveEx);
+
                     if (state.getKillCount() >= 100) {
                         driveEx.setDamage(1.1);
                     }
@@ -95,6 +95,7 @@ public class BurningFireSA {
                     // 2. 方向偏移：在水平面上旋转
                     Vec3 directionVec = VectorHelper.rotateVectorAroundY(lookAngle, angleOffset);
 
+                    driveEx.setNoClip(true);
                     driveEx.shoot(directionVec.x, directionVec.y, directionVec.z, speed, 0.0F);
 
                     driveEx.setSpeed(speed);
@@ -104,10 +105,11 @@ public class BurningFireSA {
                     driveEx.setDelaySpeed(0.1F);
                     driveEx.setColor(colorCode);
                     driveEx.setIsCritical(critical);
-                    driveEx.setNoClip(false);
                     driveEx.setKnockBack(knockBacks);
                     driveEx.setLifetime(lifetime);
                     driveEx.setRotationRoll(roll);
+
+                    world.addFreshEntity(driveEx);
 
                     if (playerIn != null) {
                         playerIn.getCapability(ConcentrationRankCapabilityProvider.RANK_POINT)

@@ -33,40 +33,42 @@ public class DivineCrossSA {
 
         EntityNRDrive driveEx = new EntityNRDrive(NrEntitiesRegistry.NRDrive, playerIn.level());
 
-            Vec3 lookAngle = playerIn.getLookAngle();
+        Vec3 lookAngle = playerIn.getLookAngle();
 
-            driveEx.setDelaySpeed(3.0F);
-            driveEx.setDelayTick(lifetime);
+        // 1. 先设置核心参数（在addFreshEntity之前）
+        driveEx.setDelaySpeed(3.0F);
+        driveEx.setDelayTick(1);
+        driveEx.setDamage(damage);
+        driveEx.setSpeed(speed);
+        driveEx.setNoClip(true);
+        driveEx.setOwner(playerIn);
+        driveEx.setRotationOffset(roll);
+        driveEx.setColor(colorCode);
+        driveEx.setIsCritical(critical);
+        driveEx.setKnockBack(knockback);
+        driveEx.setLifetime(lifetime);
 
-            Vec3 pos = playerIn.position().add(0.0D, (double) playerIn.getEyeHeight() * 0.75D, 0.0D);
+        // 2. 设置位置和方向
+        Vec3 pos = playerIn.position().add(0.0D, (double) playerIn.getEyeHeight() * 0.75D, 0.0D);
+        pos = pos.add(VectorHelper.getVectorForRotation(-90.0F, playerIn.getViewYRot(0)).scale(centerOffset.y))
+                .add(VectorHelper.getVectorForRotation(0, playerIn.getViewYRot(0) + 90).scale(centerOffset.z))
+                .add(lookAngle.scale(centerOffset.z));
+        driveEx.setPos(pos);
 
-            pos = pos.add(VectorHelper.getVectorForRotation(-90.0F, playerIn.getViewYRot(0)).scale(centerOffset.y))
-                    .add(VectorHelper.getVectorForRotation(0, playerIn.getViewYRot(0) + 90).scale(centerOffset.z))
-                    .add(lookAngle.scale(centerOffset.z));
 
-            playerIn.level().addFreshEntity(driveEx);
-            driveEx.setDamage(damage);
-            driveEx.setSpeed(speed);
-            driveEx.shoot(lookAngle.x,lookAngle.y,lookAngle.z,driveEx.getSpeed(), 0.0F);
+        // 3. 补充参数
+        driveEx.setBaseSize(15.0F);
+        driveEx.setHitboxScale(1);
+        if (playerIn != null) {
+            playerIn.getCapability(ConcentrationRankCapabilityProvider.RANK_POINT)
+                    .ifPresent(rank -> driveEx.setRank(rank.getRankLevel(playerIn.level().getGameTime())));
+        }
+        driveEx.shoot(lookAngle.x, lookAngle.y, lookAngle.z, driveEx.getSpeed(), 0.0F);
+        // 4. 最后添加实体（确保所有参数已初始化）
+        playerIn.level().addFreshEntity(driveEx);
 
-            driveEx.setPos(pos);
-            driveEx.setBaseSize(15.0F);
-            driveEx.setOwner(playerIn);
-            driveEx.setRotationOffset(roll);
 
-            driveEx.setDelayTick(lifetime);
-            driveEx.setDelaySpeed(speed);
-
-            driveEx.setColor(colorCode);
-            driveEx.setIsCritical(critical);
-            driveEx.setNoClip(false);
-            driveEx.setKnockBack(knockback);
-            driveEx.setLifetime(lifetime);
-            if (playerIn != null) {
-                playerIn.getCapability(ConcentrationRankCapabilityProvider.RANK_POINT)
-                        .ifPresent(rank -> driveEx.setRank(rank.getRankLevel(playerIn.level().getGameTime())));
-            }
-        if (playerIn.level() instanceof ServerLevel serverLevel && NRConfig.TIME_CAN_CHANGE.get().equals(true)) {
+        if (playerIn.level() instanceof ServerLevel serverLevel && NRConfig.TIME_CAN_CHANGE.get()) {
             serverLevel.setDayTime(serverLevel.getDayTime() + 12000);
         }
     }

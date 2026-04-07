@@ -38,7 +38,7 @@
   "render": {
     "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/ananke/ananke_blade.obj",
-    "summon_sword_color": 25518515,
+    "summon_sword_color": 16766720,
     "texture": "prinegorerouse:model/named/custom/ananke/ananke.png"
   }
 }
