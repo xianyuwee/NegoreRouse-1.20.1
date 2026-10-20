@@ -1,0 +1,43 @@
+{
+  "enchantments": [
+    {
+      "id": "minecraft:unbreaking",
+      "lvl": 4
+    },
+    {
+      "id": "minecraft:power",
+      "lvl": 7
+    },
+    {
+      "id": "minecraft:luck_of_the_sea"
+    },
+    {
+      "id": "minecraft:bane_of_arthropods",
+      "lvl": 3
+    },
+    {
+      "id": "minecraft:fire_aspect",
+      "lvl": 3
+    }
+  ],
+  "item": "prinegorerouse:aritemiss_blade",
+  "name": "prinegorerouse:aritemiss_blade",
+  "properties": {
+    "attack_base": 36.0,
+    "max_damage": 100,
+    "slash_art": "prinegorerouse:magnetic_storm_sword",
+    "special_effects": [
+      "prinegorerouse:clear",
+      "prinegorerouse:oracle"
+    ],
+    "sword_type": [
+      "bewitched"
+    ]
+  },
+  "render": {
+    "carry_type": "katana",
+    "model": "prinegorerouse:model/named/custom/aritemiss/artemiss_blade.obj",
+    "summon_sword_color": 16711680,
+    "texture": "prinegorerouse:model/named/custom/aritemiss/artemiss_blade.png"
+  }
+}
