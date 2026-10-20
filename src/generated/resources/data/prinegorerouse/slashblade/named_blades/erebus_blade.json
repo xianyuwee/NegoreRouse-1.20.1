@@ -21,6 +21,7 @@
       "lvl": 5
     }
   ],
+  "item": "prinegorerouse:erebus_blade",
   "name": "prinegorerouse:erebus_blade",
   "properties": {
     "attack_base": 35.0,
@@ -37,7 +38,7 @@
   "render": {
     "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/erebus/erebus.obj",
-    "summon_sword_color": -25536000,
+    "summon_sword_color": 4210752,
     "texture": "prinegorerouse:model/named/custom/erebus/erebus.png"
   }
 }

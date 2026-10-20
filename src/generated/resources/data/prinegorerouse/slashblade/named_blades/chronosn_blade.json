@@ -21,6 +21,7 @@
       "lvl": 5
     }
   ],
+  "item": "prinegorerouse:chronosn_blade",
   "name": "prinegorerouse:chronosn_blade",
   "properties": {
     "attack_base": 35.0,
@@ -37,7 +38,7 @@
   "render": {
     "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/chronosn/chronosn.obj",
-    "summon_sword_color": 10690205,
+    "summon_sword_color": 9055202,
     "texture": "prinegorerouse:model/named/custom/chronosn/chronosn.png"
   }
 }

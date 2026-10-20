@@ -1,4 +1,5 @@
 buildscript {
+    ext.kotlin_version = '2.2.0'
     repositories {
         // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
         maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
@@ -6,6 +7,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
@@ -18,12 +20,14 @@ plugins {
 }
 
 apply plugin: 'org.spongepowered.mixin'
+apply plugin: 'kotlin'
 
 version = mod_version
 group = mod_group_id
 
 base {
-    archivesName = mod_id
+    // 用独立的归档名属性（默认回退到 mod_id），使产物 jar 文件名与游戏内 mod_id 解耦
+    archivesName = project.findProperty('mod_archive_name') ?: mod_id
 }
 
 // Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
@@ -153,6 +157,10 @@ repositories {
     maven {
         url "https://cursemaven.com"
     }
+    maven {
+        url "https://repo.spongepowered.org/repository/maven-public/"
+    }
+    mavenCentral()
     // flatDir {
     //     dir 'libs'
     // }
@@ -169,7 +177,7 @@ dependencies {
     //开发环境jei
     implementation fg.deobf("curse.maven:jei-238222:7391695")
     //拔刀剑重锋依赖
-    implementation fg.deobf("curse.maven:slashblade-resharped-1022428:7363505")
+    implementation fg.deobf("curse.maven:slashblade-resharped-1022428:8090912")
     //辅助mod 玉
     implementation fg.deobf("curse.maven:jade-324717:6106101")
     //辅助mod 伤害显示
@@ -178,6 +186,18 @@ dependencies {
     implementation fg.deobf("curse.maven:yacl-667299:6336646")
     //测试用女仆
     implementation fg.deobf("curse.maven:touhou-little-maid-355044:7510714")
+    //测试用mek
+    implementation fg.deobf("curse.maven:mekanism-268560:6552911")
+    //测试用假人：userdev 不可用！dummmmmmy 生产 jar 不带 refmap，
+    //其 @WrapOperation 目标以裸 SRG 字符串（m_6475_）编译，无法重映射到 parchment 开发映射，启动即 mixin FATAL。
+    //如需假人测试：用原版盔甲架（/summon armor_stand），或把本模组打包后放进正式 Forge 客户端配合 dummmmmmy 测试。
+    //moonlight(selene) 本身带 refmap 可在 dev 加载，但失去 dummmmmmy 后无意义，一并注释。
+    implementation fg.deobf("curse.maven:selene-499980:9178412")
+    //implementation fg.deobf("curse.maven:dummmmmmy-225738:7963208")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+    // Mixin 注解处理器：生成 refmap（生产环境必需，否则报 No refMap loaded）
+    annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
@@ -270,6 +290,9 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+kotlin {
+    jvmToolchain(17)
 }
 
 

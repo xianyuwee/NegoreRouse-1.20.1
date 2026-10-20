@@ -28,7 +28,8 @@ public abstract class SwordTypeMixin {
                 "prinegorerouse:oracle",
                 "prinegorerouse:empty",
                 "prinegorerouse:clear",
-                "prinegorerouse:eternity"
+                "prinegorerouse:eternity",
+                "prinegorerouse:chaos"
         ).anyMatch(effectId ->
                 SlashEffectUtils.hasSpecialEffect(stack, effectId) ||
                         SlashBladeUtils.hasSpecialEffect(stack, effectId)

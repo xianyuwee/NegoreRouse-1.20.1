@@ -5,6 +5,7 @@
       "lvl": 10
     }
   ],
+  "item": "prinegorerouse:tartarus_blade",
   "name": "prinegorerouse:tartarus_blade",
   "properties": {
     "attack_base": 35.0,
@@ -22,7 +23,7 @@
   "render": {
     "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/tartarus/tartarus.obj",
-    "summon_sword_color": 2384444,
+    "summon_sword_color": 9109504,
     "texture": "prinegorerouse:model/named/custom/tartarus/tartarus.png"
   }
 }

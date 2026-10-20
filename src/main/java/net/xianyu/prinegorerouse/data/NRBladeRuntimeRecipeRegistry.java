@@ -1,5 +1,7 @@
 package net.xianyu.prinegorerouse.data;
 
+import mekanism.common.registries.MekanismBlocks;
+import mekanism.common.registries.MekanismItems;
 import mods.flammpfeil.slashblade.data.builtin.SlashBladeBuiltInRegistry;
 import mods.flammpfeil.slashblade.init.SBItems;
 import mods.flammpfeil.slashblade.recipe.RequestDefinition;
@@ -13,13 +15,17 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.xianyu.prinegorerouse.data.builtin.NrBladeBuiltInRegistry;
 import net.xianyu.prinegorerouse.item.ModItems;
 import net.xianyu.prinegorerouse.prinegorerouse;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class NRBladeRuntimeRecipeRegistry {
     public static boolean hasInjectedOnce = false;
@@ -56,14 +62,23 @@ public class NRBladeRuntimeRecipeRegistry {
         // 1. 获取所有原版配方（公共API）
         List<Recipe<?>> allRecipes = new ArrayList<>(recipeManager.getRecipes());
 
-        // 2. 移除旧模组配方
-        allRecipes.removeIf(recipe -> DYNAMIC_RECIPES.contains(recipe.getId()));
-
-        // 3. 生成全新难度配方
+        // 2. 生成全新难度配方
         List<Recipe<?>> newRecipes = generateAllBladeRecipes();
+
+        // 3. 移除旧模组配方：取 DYNAMIC_RECIPES 与“本次实际要生成的配方 id”的并集。
+        //    这样即使 DYNAMIC_RECIPES 与 generateAllBladeRecipes 不同步（例如早期遗漏了
+        //    aritemiss_blade），也不会残留旧配方导致 replaceRecipes 抛
+        //    "Duplicate recipe ignored with ID ..." 而使重载中断、难度不生效。
+        Set<ResourceLocation> removeIds = new HashSet<>(DYNAMIC_RECIPES);
+        for (Recipe<?> recipe : newRecipes) {
+            removeIds.add(recipe.getId());
+        }
+        allRecipes.removeIf(recipe -> removeIds.contains(recipe.getId()));
+
+        // 4. 加入新配方
         allRecipes.addAll(newRecipes);
 
-        // 4. 官方API替换配方（参数完全匹配）
+        // 5. 官方API替换配方（参数完全匹配）
         recipeManager.replaceRecipes(allRecipes);
 
         hasInjectedOnce = true;
@@ -85,6 +100,7 @@ public class NRBladeRuntimeRecipeRegistry {
         recipes.add(createNierBladeRecipe());
         recipes.add(createProtogenoiBladeRecipe());
         recipes.add(createTartarusBladeRecipe());
+        recipes.add(createAritemissBladeRecipe());
         return recipes;
     }
 
@@ -100,7 +116,7 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 2. ANANKE_BLADE ======================
@@ -115,7 +131,7 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 3. ANTAUGE_BLADE ======================
@@ -130,7 +146,7 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 4. ARITEMIS_BLADE ======================
@@ -145,7 +161,7 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 5. CHAOS_BLADE ======================
@@ -160,7 +176,7 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 6. CHRONOS_BLADE ======================
@@ -175,7 +191,7 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 7. CHRONOSN_BLADE ======================
@@ -190,7 +206,7 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 8. EREBUS_BLADE ======================
@@ -205,7 +221,7 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 9. HERCULES_BLADE ======================
@@ -220,7 +236,7 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 10. NIER_BLADE ======================
@@ -235,7 +251,7 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 11. PROTOGENOI_BLADE ======================
@@ -250,7 +266,7 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 12. TARTARUS_BLADE ======================
@@ -265,7 +281,30 @@ public class NRBladeRuntimeRecipeRegistry {
         );
 
         ShapedRecipe base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3,3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
-        return new SlashBladeShapedRecipe(base, id);
+        return new NRBladeShapedRecipe(base, id);
+    }
+
+    // ====================== 13. ARITEMISS_BLADE ======================
+    private static SlashBladeShapedRecipe createAritemissBladeRecipe() {
+        ResourceLocation id = NrBladeBuiltInRegistry.ARITEMISS_HF_BLADE.location();
+        ShapedRecipe base;
+        WeaponSystem.WeaponRequirement req = WeaponSystem.getRequirementForWeapon("ARITEMIS_S_BLADE");
+
+        if (ModList.get().isLoaded("mekanism")) {
+            NonNullList<Ingredient> ingredients = NonNullList.of(Ingredient.EMPTY,
+                    Ingredient.of(MekanismBlocks.ULTIMATE_ENERGY_CUBE), Ingredient.of(Items.NETHER_STAR), Ingredient.of(MekanismBlocks.ULTIMATE_ENERGY_CUBE),
+                    Ingredient.of(MekanismBlocks.ULTIMATE_INDUCTION_CELL), getBladeIngredient(NrBladeBuiltInRegistry.ARITEMIS_BLADE.location(), req), Ingredient.of(MekanismBlocks.ULTIMATE_INDUCTION_PROVIDER),
+                    Ingredient.of(MekanismBlocks.ULTIMATE_ENERGY_CUBE), Ingredient.of(Items.DIAMOND_SWORD), Ingredient.of(MekanismBlocks.ULTIMATE_ENERGY_CUBE));
+            base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3, 3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
+        } else {
+            NonNullList<Ingredient> ingredients = NonNullList.of(Ingredient.EMPTY,
+                    Ingredient.of(Items.DEEPSLATE_REDSTONE_ORE), Ingredient.of(Items.DIAMOND_SWORD), Ingredient.of(Items.DEEPSLATE_REDSTONE_ORE),
+                    Ingredient.of(Items.DAYLIGHT_DETECTOR), getBladeIngredient(NrBladeBuiltInRegistry.ARITEMIS_BLADE.location(), req), Ingredient.of(Items.DAYLIGHT_DETECTOR),
+                    Ingredient.of(Items.DEEPSLATE_LAPIS_ORE), Ingredient.of(Items.NETHER_STAR), Ingredient.of(Items.DEEPSLATE_LAPIS_ORE));
+            base = new ShapedRecipe(id, "", CraftingBookCategory.EQUIPMENT, 3, 3, ingredients, SlashBladeItems.SLASHBLADE.get().getDefaultInstance());
+        }
+
+        return new NRBladeShapedRecipe(base, id);
     }
 
     // ====================== 工具：拔刀剑合成要求（自动读取WeaponSystem） ======================
@@ -275,7 +314,18 @@ public class NRBladeRuntimeRecipeRegistry {
                 .killCount(req.getKillCount())
                 .refineCount(req.getRefineCount());
 
-        if (baseBlade != null) builder.name(baseBlade);
+        if (baseBlade != null) {
+            builder.name(baseBlade);
+            // 关键：用该母刀“自己的物理物品”走 of(ItemLike, request) 重载来构造成分。
+            // 默认 of(request) 会把展示物品写死为 slashblade:slashblade（刀名只作为数据组件），
+            // 导致 JEI 合成表里母刀显示的仍是 slashblade:slashblade，无法点击链式查看它的上级配方。
+            // 传具体物品后，展示/匹配都用该刀自己的注册物品（如 prinegorerouse:chronos_blade），链式查看恢复。
+            Item bladeItem = ForgeRegistries.ITEMS.getValue(baseBlade);
+            if (bladeItem != null && bladeItem != Items.AIR) {
+                return SlashBladeIngredient.of(bladeItem, builder.build());
+            }
+        }
+        // 无独立注册物品时（如原版共享 slashblade:slashblade 的刀，或 baseBlade 为 null 的通用母刀要求）回退默认行为。
         return SlashBladeIngredient.of(builder.build());
     }
 }

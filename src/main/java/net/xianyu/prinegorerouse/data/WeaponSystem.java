@@ -8,7 +8,9 @@ import java.util.Map;
 
 public class WeaponSystem {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static int difficulty = 1; // 默认难度1（基础值）
+    // 不再依赖配置文件：默认难度 5，实际值以世界存档数据（DifficultySavedData）为准。
+    public static final int DEFAULT_DIFFICULTY = 5;
+    private static int difficulty = DEFAULT_DIFFICULTY;
 
     // 存储不同武器的基础要求（难度1时的数值）
     private static final Map<String, WeaponRequirement> baseWeaponRequirements = new HashMap<>();
@@ -42,6 +44,7 @@ public class WeaponSystem {
         baseWeaponRequirements.put("NIER_BLADE", new WeaponRequirement(800,50,1));
         baseWeaponRequirements.put("PROTOGENOI_BLADE", new WeaponRequirement(10000, 1000, 10));
         baseWeaponRequirements.put("TARTARUS_BLADE" , new WeaponRequirement(800,50,1));
+        baseWeaponRequirements.put("ARITEMIS_S_BLADE", new WeaponRequirement(2000,500,10));
 
         updateRuntimeWeaponRequirements(); // 初始化实时要求
     }

@@ -51,7 +51,8 @@ public class NRJudgementCutRenderer<T extends EntityNRJudgementCut> extends Enti
 
             int lifetime = entity.getLifetime();
 
-            double deathTime = lifetime;
+            // 除零兜底：客户端首帧同步值可能仍为 0，直接除以 lifetime 会得 NaN 导致整模型不可见
+            double deathTime = Math.max(1, lifetime);
             // double baseAlpha = Math.sin(Math.PI * 0.5 * (Math.min(deathTime, Math.max(0,
             // (lifetime - (entity.ticksExisted) - partialTicks))) / deathTime));
             double baseAlpha = (Math.min(deathTime, Math.max(0, (lifetime - (entity.tickCount) - partialTicks)))

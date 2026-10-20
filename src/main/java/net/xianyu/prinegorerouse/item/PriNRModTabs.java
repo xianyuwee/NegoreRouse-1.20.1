@@ -31,8 +31,19 @@ public class PriNRModTabs {
                     })
                     .sorted(Map.Entry.comparingByKey())
                     .forEach(entry -> {
+                        ItemStack blade = entry.getValue().getBlade();
+                        // getBlade() 可能因为该刀定义的物理物品无法解析（注册 id 与定义 name 不一致）而返回空栈。
+                        // Forge 的创造栏校验要求 stack.getCount() 必须为 1，而 ItemStack#setCount 对空栈是空操作
+                        // （内部 if(!isEmpty()) 会跳过），因此必须先跳过空栈，否则会抛
+                        // "The stack count must be 1" 导致打开创造栏崩溃。
+                        if (blade.isEmpty()) {
+                            LOGGER.warn("Skip slashblade creative entry (empty blade): {}", entry.getKey());
+                            return;
+                        }
                         LOGGER.info("Registering Slashblade: {}", entry.getKey());
-                        output.accept(entry.getValue().getBlade());
+                        // 拔刀剑的刀可堆叠时 getBlade() 可能带回大于 1 的数量，这里强制置 1 以通过 Forge 校验。
+                        blade.setCount(1);
+                        output.accept(blade);
                     });
         }
     }

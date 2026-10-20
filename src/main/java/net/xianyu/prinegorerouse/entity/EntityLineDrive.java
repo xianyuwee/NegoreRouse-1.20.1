@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.network.PlayMessages;
+import net.xianyu.prinegorerouse.compat.MaidCompat;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
 public class EntityLineDrive extends EntityNRDrive{
@@ -36,6 +37,8 @@ public class EntityLineDrive extends EntityNRDrive{
     public void onHitEntity(EntityHitResult result) {
         super.onHitEntity(result);
         if (!(result.getEntity() instanceof LivingEntity entity)) return;
+        // 女仆/宠物保护：主人自己的驯服生物不受直线刃的比例削血/咬伤效果
+        if (MaidCompat.isOwnedBy(entity, this.getShooter())) return;
         if (entity.isAlive()) {
             if (entity instanceof Player) {
                 entity.addEffect(new MobEffectInstance(MobEffects.HARM), entity);

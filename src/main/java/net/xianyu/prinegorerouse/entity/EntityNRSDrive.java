@@ -1,5 +1,6 @@
 package net.xianyu.prinegorerouse.entity;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import mods.flammpfeil.slashblade.SlashBlade;
 import mods.flammpfeil.slashblade.ability.StunManager;
 import mods.flammpfeil.slashblade.capability.concentrationrank.ConcentrationRankCapabilityProvider;
@@ -35,6 +36,10 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -44,6 +49,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PlayMessages;
+import net.xianyu.prinegorerouse.compat.MaidCompat;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,6 +88,10 @@ public class EntityNRSDrive extends EntityDrive {
             EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> INITIAL_PITCH = SynchedEntityData.defineId(EntityNRSDrive.class,
             EntityDataSerializers.FLOAT);
+    // 延迟结束后的飞行速度同步到客户端：与 EntityNRDrive 同款抽搐修复，
+    // 否则客户端 shoot() 不执行、initialSpeed 停在默认值，两端逐 tick 模拟发散→抽搐
+    private static final EntityDataAccessor<Float> INITIAL_SPEED = SynchedEntityData.defineId(EntityNRSDrive.class,
+            EntityDataSerializers.FLOAT);
 
     private KnockBacks action = KnockBacks.cancel;
     private double damage = 7.0D;
@@ -93,6 +103,11 @@ public class EntityNRSDrive extends EntityDrive {
     private boolean indelay = true;
     private Vec3 initialDirection = Vec3.ZERO;
     private float initialSpeed = 0;
+
+    // ShinyDrive 式统一命中判定：位移胶囊半径（命中不依赖碰撞箱，只由此值决定）
+    private static final double HIT_RADIUS = 2.0D;
+    // 本发已结算过的目标 id：每发对同一目标只命中一次
+    protected final IntOpenHashSet hitIds = new IntOpenHashSet();
 
     public KnockBacks getKnockBack() {
         return action;
@@ -140,6 +155,7 @@ public class EntityNRSDrive extends EntityDrive {
         // 初始化新增的同步数据
         this.entityData.define(INITIAL_YAW, 0.0f);
         this.entityData.define(INITIAL_PITCH, 0.0f);
+        this.entityData.define(INITIAL_SPEED, 0.5f);
     }
 
     @Override
@@ -161,7 +177,8 @@ public class EntityNRSDrive extends EntityDrive {
                 .put("delayTicks", this.getDelayTick())
                 .put("delayspeed", this.getDelaySpeed())
                 .put("indelay", this.isIndelay())
-                .put("RemainingDelayTicks", this.remainingDelayTicks);
+                .put("RemainingDelayTicks", this.remainingDelayTicks)
+                .put("InitialSpeed", this.getInitialSpeed());
     }
 
     @Override
@@ -182,7 +199,8 @@ public class EntityNRSDrive extends EntityDrive {
                 .get("InitialPitch", this::setInitialPitch, 0f)  // 读取同步的InitialPitch
                 .get("delayTicks", this::setDelayTick, 20)
                 .get("delayspeed", this::setDelaySpeed, 0.5f)
-                .get("RemainingDelayTicks", (Integer v) -> this.remainingDelayTicks = v, 0);
+                .get("RemainingDelayTicks", (Integer v) -> this.remainingDelayTicks = v, 0)
+                .get("InitialSpeed", this::setInitialSpeed, 0.5f);
     }
 
     // ========== 关键修改2：InitialYaw/Pitch的get/set方法（关联同步器） ==========
@@ -200,6 +218,15 @@ public class EntityNRSDrive extends EntityDrive {
 
     public void setInitialPitch(float value) {
         this.entityData.set(INITIAL_PITCH, value);
+    }
+
+    // 客户端安全读取同步后的飞行速度（替代不同步的 initialSpeed 字段）
+    public float getInitialSpeed() {
+        return this.entityData.get(INITIAL_SPEED);
+    }
+
+    public void setInitialSpeed(float value) {
+        this.entityData.set(INITIAL_SPEED, value);
     }
 
     @Override
@@ -238,6 +265,9 @@ public class EntityNRSDrive extends EntityDrive {
     public void tick() {
         refreshFlags();
 
+        // 记录移动前位置，用于本 tick 的扫掠区间（胶囊）——防止一步跨过目标导致的隧穿漏判
+        Vec3 prevPos = this.position();
+
         // 只在首次tick时初始化延迟
         if (remainingDelayTicks == 0 && getDelayTick() > 0) {
             remainingDelayTicks = getDelayTick();
@@ -271,13 +301,12 @@ public class EntityNRSDrive extends EntityDrive {
             this.setSpeed(delaySpeed);
 
             checkCollisions();
-
             // 延迟结束处理
             if (remainingDelayTicks <= 0) {
                 setInDelay(false);
                 remainingDelayTicks = -1;
-                // 恢复原始速度
-                this.setDeltaMovement(initialDirection.scale(this.initialSpeed));
+                // 恢复原始速度：用同步值保证客户端与服务端一致
+                this.setDeltaMovement(initialDirection.scale(this.getInitialSpeed()));
             }
         } else {
             // 正常状态处理
@@ -293,43 +322,38 @@ public class EntityNRSDrive extends EntityDrive {
             this.xRotO = initialPitch;
             this.setRotationRoll(customRoll);
             this.setRotationOffset(customYaw);
-            this.setSpeed(initialSpeed);
+            this.setSpeed(this.getInitialSpeed());
         }
 
-        String debugMsg = String.format(
-                "[NRDrive渲染调试] ID:%d | 同步InitialYaw:%.2f | InitialPitch:%.2f | 实体原生Yaw:%.2f | 原生Pitch:%.2f | Roll:%.2f | pos_x:%.2f | pos_y:%.2f | pos_z:%.2f |",
-                this.getId(),
-                this.getInitialYaw(), // 改用同步器获取
-                this.getInitialPitch(),
-                this.getYRot(),
-                this.getXRot(),
-                this.getRotationRoll(),
-                this.getX(),
-                this.getY(),
-                this.getZ()
-        );
-        SlashBlade.LOGGER.info(debugMsg);
+        // 服务端按「移动前→移动后」的位移胶囊扫描目标并结算伤害（ShinyDrive 式）：
+        // 延迟期与飞行期统一走这一条判定，不再依赖中心射线/碰撞箱重叠
+        if (!this.level().isClientSide()) {
+            this.sweepHits(prevPos, this.position());
+        }
+
+        // ===== 渲染调试日志（已注释，避免刷屏）=====
+        // String debugMsg = String.format(
+        //         "[NRDrive渲染调试] ID:%d | 同步InitialYaw:%.2f | InitialPitch:%.2f | 实体原生Yaw:%.2f | 原生Pitch:%.2f | Roll:%.2f | pos_x:%.2f | pos_y:%.2f | pos_z:%.2f |",
+        //         this.getId(),
+        //         this.getInitialYaw(),
+        //         this.getInitialPitch(),
+        //         this.getYRot(),
+        //         this.getXRot(),
+        //         this.getRotationRoll(),
+        //         this.getX(),
+        //         this.getY(),
+        //         this.getZ()
+        // );
+        // SlashBlade.LOGGER.info(debugMsg);
         tryDespawn();
     }
 
     private void checkCollisions() {
         // 计算新位置
         Vec3 newPos = this.position().add(this.getDeltaMovement());
-        Entity shooter = this.getShooter(); // 获取释放者
 
-        // 检测实体碰撞 - 排除释放者
-        EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
-                this.level(), this, this.position(), newPos,
-                this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate(1.0D),
-                entity -> !entity.isSpectator() && entity.isAlive() && entity.isPickable()
-                        && entity != shooter
-        );
-
-        if (entityHit != null) {
-            this.onHitEntity(entityHit);
-        }
-
-        // 检测方块碰撞
+        // 实体命中已由 tick 末尾的 sweepHits 统一结算（延迟期也覆盖），
+        // 此处仅保留延迟期的方块碰撞检测
         BlockHitResult blockHit = this.level().clip(new ClipContext(
                 this.position(), newPos,
                 ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this
@@ -357,11 +381,14 @@ public class EntityNRSDrive extends EntityDrive {
         ).scale((double)velocity);
 
         this.setDeltaMovement(vec3d);
-        this.initialDirection = vec3d;
+        // 存单位方向：与客户端首 tick 从速度包 normalize() 的结果模长一致，避免双倍缩放发散
+        this.initialDirection = vec3d.normalize();
         float f = Mth.sqrt((float)vec3d.horizontalDistanceSqr());
         this.setPos(this.position());
 
         this.initialSpeed = velocity;
+        // 同步飞行速度给客户端（客户端不执行 shoot）
+        this.setInitialSpeed(velocity);
 
         // 计算并设置同步的初始旋转角度
         float initialYaw = (float)(Mth.atan2(vec3d.x, vec3d.z) * 57.2957763671875F);
@@ -473,6 +500,21 @@ public class EntityNRSDrive extends EntityDrive {
             return;
         }
 
+        // 多段生物：部件统一归并到本体，去重/伤害/后续逻辑全部落在本体上结算
+        if (targetEntity instanceof PartEntity<?> part && part.getParent() instanceof LivingEntity parent) {
+            targetEntity = parent;
+        }
+
+        // 每发对同一目标只结算一次（ShinyDrive 式去重，防扫掠/父类射线双路径重复扣血）
+        if (!this.level().isClientSide() && !this.hitIds.add(targetEntity.getId())) {
+            return;
+        }
+
+        // 女仆/宠物保护：归属发射者的驯服生物（Touhou Little Maid 等）不结算伤害
+        if (MaidCompat.isOwnedBy(targetEntity, shooter)) {
+            return;
+        }
+
         float damageValue = (float) this.getDamage();
         DamageSource damagesource;
 
@@ -558,16 +600,93 @@ public class EntityNRSDrive extends EntityDrive {
 
     @Override
     protected void onHitBlock(BlockHitResult blockraytraceresult) {
+        // 传送门类方块（下界传送门/末地传送门/末地折跃门）：直接穿过，不交互不消失
+        BlockState state = this.level().getBlockState(blockraytraceresult.getBlockPos());
+        Block block = state.getBlock();
+        if (block == Blocks.NETHER_PORTAL || block == Blocks.END_PORTAL || block == Blocks.END_GATEWAY) {
+            return;
+        }
         this.setRemoved(RemovalReason.DISCARDED);
+    }
+
+    // ============ 传送门适配：直接穿过，不与任何传送门交互 ============
+    @Override
+    protected void handleNetherPortal() {
+        // 屏蔽原版下界 portal 的点燃/转换逻辑（baseTick 每 tick 调用）
+    }
+
+    @Override
+    public boolean canChangeDimensions() {
+        // 屏蔽下界传送门/末地传送门/末地折跃门的全部维度转移入口
+        return false;
     }
 
     @Nullable
     public EntityHitResult getRayTrace(Vec3 p_213866_1_, Vec3 p_213866_2_) {
-        return ProjectileUtil.getEntityHitResult(this.level(), this, p_213866_1_, p_213866_2_,
+        EntityHitResult hit = ProjectileUtil.getEntityHitResult(this.level(), this, p_213866_1_, p_213866_2_,
                 this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate(1.0D), (entity) -> {
+                    // 多段生物：部件可触发射线，但排除/命中判定落在本体 id 上
+                    Entity forIdCheck = entity instanceof PartEntity<?> part ? part.getParent() : entity;
                     return !entity.isSpectator() && entity.isAlive() && entity.isPickable()
-                            && (entity != this.getShooter());
+                            && (forIdCheck != this.getShooter())
+                            // 女仆/宠物保护：射线不命中发射者所属驯服生物，幻影刃直接穿过
+                            && !(forIdCheck != null && MaidCompat.isOwnedBy(forIdCheck, this.getShooter()))
+                            // 已结算过的目标不再返回，避免父类路径与 sweepHits 重复命中
+                            && !(forIdCheck != null && this.hitIds.contains(forIdCheck.getId()));
                 });
+        // 部件归并到本体后再返回，保证伤害与特殊逻辑结算在主实体上
+        if (hit != null && hit.getEntity() instanceof PartEntity<?> part
+                && part.getParent() instanceof LivingEntity parent) {
+            return new EntityHitResult(parent, hit.getLocation());
+        }
+        return hit;
+    }
+
+    /**
+     * ShinyDrive 式命中判定：以「from→to」位移为轴、HIT_RADIUS 为半径构成胶囊区，
+     * 命中到线段最短距离 ≤ R 的存活生物；不依赖碰撞箱，谓词预筛已命中目标消除重复扣血
+     */
+    private void sweepHits(Vec3 from, Vec3 to) {
+        double r2 = HIT_RADIUS * HIT_RADIUS;
+        AABB window = new AABB(
+                Math.min(from.x, to.x) - HIT_RADIUS,
+                Math.min(from.y, to.y) - HIT_RADIUS,
+                Math.min(from.z, to.z) - HIT_RADIUS,
+                Math.max(from.x, to.x) + HIT_RADIUS,
+                Math.max(from.y, to.y) + HIT_RADIUS,
+                Math.max(from.z, to.z) + HIT_RADIUS);
+
+        Entity owner = this.getOwner();
+        Vec3 ab = to.subtract(from);
+        double abLen2 = ab.lengthSqr();
+
+        // 多段生物适配（如末影龙）：同时扫描部件并归并到本体，
+        // 只扫 LivingEntity 会因龙本体碰撞盒为空而永远打不中
+        List<Entity> raws = this.level().getEntities((Entity) null, window,
+                e -> (e instanceof LivingEntity || e instanceof PartEntity<?>)
+                        && e.isAlive() && !e.isSpectator() && e.isPickable());
+
+        for (Entity raw : raws) {
+            Entity merged = raw instanceof PartEntity<?> part ? part.getParent() : raw;
+            if (!(merged instanceof LivingEntity e) || e == owner || e == this.getShooter()
+                    || !e.isAlive() || this.hitIds.contains(e.getId())
+                    // 女仆/宠物保护：不对发射者所属的驯服生物造成伤害（Touhou Little Maid 等）
+                    || MaidCompat.isOwnedBy(e, owner != null ? owner : this.getShooter())) {
+                continue;
+            }
+            // 距离判定用被扫到的碰撞盒（部件 bb 真实反映肢体位置），结算则归并到本体
+            Vec3 center = raw.getBoundingBox().getCenter();
+            Vec3 closest;
+            if (abLen2 < 1.0E-7D) {
+                closest = from;
+            } else {
+                double t = Mth.clamp(center.subtract(from).dot(ab) / abLen2, 0.0D, 1.0D);
+                closest = from.add(ab.x * t, ab.y * t, ab.z * t);
+            }
+            if (center.distanceToSqr(closest) <= r2) {
+                this.onHitEntity(new EntityHitResult(e));
+            }
+        }
     }
 
     public void setCritical(boolean critical) {

@@ -20,6 +20,7 @@
       "lvl": 3
     }
   ],
+  "item": "prinegorerouse:hercules_blade",
   "name": "prinegorerouse:hercules_blade",
   "properties": {
     "attack_base": 27.0,
@@ -35,7 +36,7 @@
   "render": {
     "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/hercules/hercules_blade.obj",
-    "summon_sword_color": 2059292,
+    "summon_sword_color": 16755200,
     "texture": "prinegorerouse:model/named/custom/hercules/hercules_blade.png"
   }
 }

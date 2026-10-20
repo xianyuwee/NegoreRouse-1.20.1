@@ -8,6 +8,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xianyu.prinegorerouse.client.renderer.entity.NRDriveRenderer;
 import net.xianyu.prinegorerouse.client.renderer.entity.NRJudgementCutRenderer;
+import net.xianyu.prinegorerouse.client.renderer.entity.AbsolutePhantomRenderer;
+import net.xianyu.prinegorerouse.client.renderer.entity.FateEyeRenderer;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
     @Mod.EventBusSubscriber(
@@ -31,7 +33,10 @@ import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
             event.registerEntityRenderer(NrEntitiesRegistry.LineDrive, NRDriveRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.NRBlisteringSword, SummonedSwordRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.Countable_Sword, SummonedSwordRenderer::new);
+             event.registerEntityRenderer(NrEntitiesRegistry.Reverse_Sword, SummonedSwordRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.NRJudgementCut, NRJudgementCutRenderer::new);
+            event.registerEntityRenderer(NrEntitiesRegistry.Absolute_Phantom, AbsolutePhantomRenderer::new);
+            event.registerEntityRenderer(NrEntitiesRegistry.Fate_Eye, FateEyeRenderer::new);
         }
     }
 

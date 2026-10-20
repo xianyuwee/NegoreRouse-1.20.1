@@ -25,6 +25,7 @@
       "lvl": 8
     }
   ],
+  "item": "prinegorerouse:protogenoi_blade",
   "name": "prinegorerouse:protogenoi_blade",
   "properties": {
     "attack_base": 60.0,

@@ -1,18 +1,16 @@
 package net.xianyu.prinegorerouse.entity;
 
 import mods.flammpfeil.slashblade.entity.Projectile;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -21,6 +19,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.PlayMessages;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
+import net.xianyu.prinegorerouse.registry.NrParticlesRegistry;
 
 public class EntityEnchantedSword extends EntityNRBlisteringSword {
     public EntityEnchantedSword(EntityType<? extends Projectile> type, Level world) {
@@ -33,44 +32,31 @@ public class EntityEnchantedSword extends EntityNRBlisteringSword {
 
     @Override
     protected void onHitEntity(EntityHitResult result) {
+        // 释放者同源排除（本人 / 坐骑载具 / 其所属女仆·宠物）：雷光表现与伤害一律不生效
+        if (isOwnerRelated(result.getEntity())) return;
         Entity entity = result.getEntity();
         Level level = entity.level();
-        if (!level.isClientSide()) {
-            BlockPos blockPos = entity.getOnPos();
-            if (this.level().isLoaded(blockPos)) {
-// 1. 仅创建视觉特效雷电（无实际伤害/掉落物影响）
-                LightningBolt visualLightning = EntityType.LIGHTNING_BOLT.create(this.level());
-                if (visualLightning != null) {
-                    visualLightning.setVisualOnly(true); // 纯视觉，不起火/不掉落物
-                    visualLightning.setPos(entity.getEyePosition());
+        if (!level.isClientSide() && level instanceof ServerLevel serverLevel) {
+            // 纯粒子闪电表现：不再生成 LightningBolt 实体（去掉实体闪电的渲染与全屏亮白，避免掉帧）
+            double cx = entity.getX();
+            double cy = entity.getY() + entity.getBbHeight() * 0.5;
+            double cz = entity.getZ();
+            // 一道竖直锯齿雷光劈在目标身体中心
+            serverLevel.sendParticles(NrParticlesRegistry.LIGHTNING_BOLT.get(), cx, cy, cz, 1, 0.0, 0.0, 0.0, 0.0);
+            // 周围撒 vanilla 电火花，增加“兹啪”电弧感
+            serverLevel.sendParticles(ParticleTypes.ELECTRIC_SPARK, cx, cy, cz, 10, 0.35, 0.45, 0.35, 0.0);
+            // 安静短促的“滋”：低音量+高音调把雷鸣变成清脆放电声（原 5.0 音量雷声已移除）
+            this.playSound(SoundEvents.LIGHTNING_BOLT_THUNDER, 0.25F, 1.7F + this.random.nextFloat() * 0.3F);
 
-                    // 设置雷电视觉特效的触发者（仅显示）
-                    if (this.getOwner() instanceof ServerPlayer owner) {
-                        visualLightning.setCause(owner);
-                    }
-
-                    // 添加视觉雷电到世界
-                    this.level().addFreshEntity(visualLightning);
-                    this.playSound(SoundEvents.LIGHTNING_BOLT_THUNDER, 5.0F, 1.0F);
-
-                    // 2. 手动处理伤害逻辑（基于拥有者面板伤害）
-                    if (entity instanceof LivingEntity targetEntity) {
-                        Entity owner = this.getOwner();
-                        // 防误伤：目标不是释放者自身且拥有者存在才造成伤害
-                        if (targetEntity != owner && owner instanceof LivingEntity livingOwner) {
-                            DamageSource damageSource = createAttackerDamageSource(level, owner);
-
-                            // --- 核心修改：获取拥有者面板伤害并应用 ---
-                            // 获取拥有者的基础攻击伤害（面板值）
-                            double baseAttackDamage = livingOwner.getAttributeValue(Attributes.ATTACK_DAMAGE);
-                            // 造成 1 倍面板伤害
-                            float finalDamage = (float) baseAttackDamage;
-
-                            targetEntity.hurt(damageSource, finalDamage);
-                            // 保留雷击视觉反馈（无实际伤害）
-                            targetEntity.thunderHit((ServerLevel) level, visualLightning);
-                        }
-                    }
+            // 闪电伤害保留：1 倍拥有者面板攻击伤害，归因释放者
+            if (entity instanceof LivingEntity targetEntity) {
+                Entity owner = this.getOwner();
+                // 防误伤：拥有者存在才造成伤害（释放者同源已由方法入口统一排除）
+                if (owner instanceof LivingEntity livingOwner) {
+                    DamageSource damageSource = createAttackerDamageSource(level, owner);
+                    // 获取拥有者的基础攻击伤害（面板值），造成 1 倍面板伤害
+                    double baseAttackDamage = livingOwner.getAttributeValue(Attributes.ATTACK_DAMAGE);
+                    targetEntity.hurt(damageSource, (float) baseAttackDamage);
                 }
             }
         }

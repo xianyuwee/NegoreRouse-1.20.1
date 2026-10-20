@@ -17,6 +17,7 @@
       "lvl": 5
     }
   ],
+  "item": "prinegorerouse:nyx_blade",
   "name": "prinegorerouse:nyx_blade",
   "properties": {
     "attack_base": 25.0,
@@ -33,7 +34,7 @@
   "render": {
     "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/nyx/nyx.obj",
-    "summon_sword_color": 21816532,
+    "summon_sword_color": 3033740,
     "texture": "prinegorerouse:model/named/custom/nyx/nyx.png"
   }
 }

@@ -11,8 +11,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.boss.EnderDragonPart;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.level.Level;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.network.PlayMessages;
+import net.xianyu.prinegorerouse.compat.MaidCompat;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
 public class EntityNRJudgementCut extends EntityJudgementCut {
@@ -21,22 +23,50 @@ public class EntityNRJudgementCut extends EntityJudgementCut {
     // 新增：自定义伤害存储（避免依赖generic.attack_damage属性）
     private static final EntityDataAccessor<Float> CUSTOM_DAMAGE =
             SynchedEntityData.defineId(EntityNRJudgementCut.class, EntityDataSerializers.FLOAT);
+    // 渲染修复核心：父类 lifetime 是私有字段且不进同步数据，客户端永远为 0，
+    // 导致渲染器透明度公式除以 0 得 NaN → 整个模型不可见。这里用同步数据接管它
+    //（父类内部读写均走 getLifetime/setLifetime 虚调用，override 即可全面生效）。
+    private static final EntityDataAccessor<Integer> LIFETIME_SYNC =
+            SynchedEntityData.defineId(EntityNRJudgementCut.class, EntityDataSerializers.INT);
     // 最大生命周期（防止实体无限存活）
     private static final int MAX_LIFETIME = 200;
 
     public EntityNRJudgementCut(EntityType<? extends Projectile> entityTypeIn, Level worldIn) {
         super(entityTypeIn, worldIn);
-        this.entityData.set(RENDER_SCALE, 0.1f);
+        this.entityData.set(RENDER_SCALE, 0.8f);
         this.entityData.set(CUSTOM_DAMAGE, 0.0f); // 初始化自定义伤害
-        // 限制默认生命周期
-        this.setLifetime(Math.min(this.getLifetime(), MAX_LIFETIME));
+        // 注意：不要在这里用 getLifetime() 回写——父类字段默认 0，回写会把同步值锁死在 0
+    }
+
+    // ============ 传送门适配：直接穿过，不与任何传送门交互 ============
+    @Override
+    protected void handleNetherPortal() {
+        // 屏蔽原版下界 portal 的点燃/转换逻辑（baseTick 每 tick 调用）
+    }
+
+    @Override
+    public boolean canChangeDimensions() {
+        // 屏蔽下界传送门/末地传送门/末地折跃门的全部维度转移入口
+        return false;
     }
 
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(RENDER_SCALE, 0.1f);
+        this.entityData.define(RENDER_SCALE, 0.8f);
         this.entityData.define(CUSTOM_DAMAGE, 0.0f); // 注册自定义伤害数据
+        this.entityData.define(LIFETIME_SYNC, 0);
+    }
+
+    // 渲染修复：接管父类 lifetime，改走同步数据（服务端设置后客户端可见）
+    @Override
+    public int getLifetime() {
+        return this.entityData.get(LIFETIME_SYNC);
+    }
+
+    @Override
+    public void setLifetime(int lifetime) {
+        this.entityData.set(LIFETIME_SYNC, Mth.clamp(lifetime, 0, MAX_LIFETIME));
     }
 
     // 重写setDamage，使用自定义存储而非属性
@@ -52,8 +82,8 @@ public class EntityNRJudgementCut extends EntityJudgementCut {
     }
 
     public void setRenderScale(float scale) {
-        // 限制渲染缩放上限，避免客户端渲染压力
-        this.entityData.set(RENDER_SCALE, Math.min(scale, 1.0f));
+        // 缩放下限 0.5：避免低层数时模型小到视觉上“没渲染”；上限 1.6 控制渲染压力
+        this.entityData.set(RENDER_SCALE, Mth.clamp(scale, 0.5f, 1.6f));
     }
 
     public float getRenderScale() {
@@ -117,6 +147,14 @@ public class EntityNRJudgementCut extends EntityJudgementCut {
         }
         // 2. 获取主实体（处理末影龙部件）
         Entity mainTarget = getMainEntity(rawTarget);
+        // 主体检测：裁决斩不得结算到释放者本人（此前仅挡了女仆·宠物，漏了射手自身）
+        if (mainTarget == this.getShooter()) {
+            return;
+        }
+        // 女仆/宠物保护：归属发射者的驯服生物（Touhou Little Maid 等）不结算裁决斩伤害
+        if (MaidCompat.isOwnedBy(mainTarget, this.getShooter())) {
+            return;
+        }
         // 3. 伤害逻辑处理
         if (mainTarget instanceof EnderDragon dragon) {
             // 末影龙特殊处理：直接调用hurt方法，使用通用伤害源

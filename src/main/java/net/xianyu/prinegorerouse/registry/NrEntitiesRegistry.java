@@ -19,6 +19,8 @@ public class NrEntitiesRegistry {
     public static EntityType<EntityNRBlisteringSword> Storm_Sword;
     public static EntityType<EntityNRBlisteringSword> Enchanted_Sword;
     public static EntityType<EntityNRBlisteringSword> Countable_Sword;
+    public static EntityType<EntityNRBlisteringSword> Reverse_Sword;
+    public static EntityType<EntityAbsolutePhantom> Absolute_Phantom;
     public static EntityType<EntityNRDrive> NRDrive;
     public static EntityType<EntityNRDrive> DriveEx;
     public static EntityType<EntityNRDrive> LineDrive;
@@ -26,6 +28,7 @@ public class NrEntitiesRegistry {
     public static EntityType<EntityNRSDrive> FireDrive;
     public static EntityType<EntityNRSDrive> ShinyDrive;
     public static EntityType<EntityNRJudgementCut> NRJudgementCut;
+    public static EntityType<EntityFateEye> Fate_Eye;
     public NrEntitiesRegistry() {
     }
 
@@ -34,7 +37,11 @@ public class NrEntitiesRegistry {
             EntityType<EntityNRBlisteringSword> entity = NRBlisteringSword = Builder
                     .of(EntityNRBlisteringSword::new, MobCategory.MISC)
                     .sized(0.5F,0.5F)
-                    .setTrackingRange(4)
+                    // setTrackingRange 单位是「区块」，服务端按 ×16 换算成方格：原来的 4 只有 64 格。
+                    // 幻影剑常在数十格外的锁定目标身上生成，追踪外扩也会超过 64 格，
+                    // 一旦越界服务端就下发移除包、客户端直接把它删掉（表现为“剑凭空消失/没飞回来”）。
+                    // 提到 8（128 格）；实际仍会被服务端视距截断，不会多发无用的包。
+                    .setTrackingRange(8)
                     .setUpdateInterval(20)
                     .setCustomClientFactory(EntityNRBlisteringSword::createInstance)
                     .build(NRBlisteringSwordsLoc.toString());
@@ -45,7 +52,7 @@ public class NrEntitiesRegistry {
             EntityType<EntityNRBlisteringSword> entity = Storm_Sword = Builder
                     .of(EntityNRBlisteringSword::new, MobCategory.MISC)
                     .sized(0.9F, 0.9F)
-                    .setTrackingRange(4)
+                    .setTrackingRange(8) // 同 NRBlisteringSword：64 格太小，远处生成/外扩会看不见
                     .setUpdateInterval(20)
                     .setCustomClientFactory(EntityStormSword::createInstance)
                     .build("explosion_sword");
@@ -56,7 +63,7 @@ public class NrEntitiesRegistry {
             EntityType<EntityNRBlisteringSword> entity = Enchanted_Sword = Builder
                     .of(EntityNRBlisteringSword::new, MobCategory.MISC)
                     .sized(0.9F, 0.9F)
-                    .setTrackingRange(4)
+                    .setTrackingRange(8) // 同 NRBlisteringSword：十二连就在这类剑上生成于远处目标
                     .setUpdateInterval(20)
                     .setCustomClientFactory(EntityEnchantedSword::createInstance)
                     .build("enchanted_sword");
@@ -67,11 +74,33 @@ public class NrEntitiesRegistry {
             EntityType<EntityNRBlisteringSword> entity = Countable_Sword = Builder
                     .of(EntityNRBlisteringSword::new, MobCategory.MISC)
                     .sized(0.9F, 0.9F)
-                    .setTrackingRange(4)
+                    .setTrackingRange(8) // 同 NRBlisteringSword：64 格太小
                     .setUpdateInterval(20)
                     .setCustomClientFactory(EntityCountableSwords::createInstance)
                     .build("countable_sword");
             helper.register(new ResourceLocation("prinegorerouse", "countable_sword"), entity);
+        });
+
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
+            EntityType<EntityNRBlisteringSword> entity = Reverse_Sword = Builder
+                    .of(EntityNRBlisteringSword::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .setTrackingRange(8) // 同 NRBlisteringSword：64 格太小
+                    .setUpdateInterval(20)
+                    .setCustomClientFactory(EntityReverseSword::createInstance)
+                    .build("reverse_sword");
+            helper.register(new ResourceLocation("prinegorerouse", "reverse_sword"), entity);
+        });
+
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
+            EntityType<EntityAbsolutePhantom> entity = Absolute_Phantom = Builder
+                    .of(EntityAbsolutePhantom::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .setTrackingRange(64)
+                    .setUpdateInterval(1)
+                    .setCustomClientFactory(EntityAbsolutePhantom::createInstance)
+                    .build("absolute_phantom");
+            helper.register(new ResourceLocation("prinegorerouse", "absolute_phantom"), entity);
         });
 
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
@@ -110,7 +139,7 @@ public class NrEntitiesRegistry {
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
             EntityType<EntityNRSDrive> entity = ShinyDrive = Builder
                     .of(EntityNRSDrive::new, MobCategory.MISC)
-                    .sized(5.0F, 5.0F)
+                    .sized(0.2F, 0.2F)
                     .setTrackingRange(4)
                     .setUpdateInterval(20)
                     .setCustomClientFactory(EntityShinyDrive::createInstance)
@@ -146,6 +175,17 @@ public class NrEntitiesRegistry {
                     .setCustomClientFactory(EntityNRJudgementCut::createInstance)
                     .build("nr_judgement_cut");
             helper.register(new ResourceLocation("prinegorerouse", "nr_judgement_cut"), entityType);
+        });
+
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, (helper) -> {
+            EntityType<EntityFateEye> entity = Fate_Eye = Builder
+                    .of(EntityFateEye::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .setTrackingRange(64)
+                    .setUpdateInterval(1)
+                    .setCustomClientFactory(EntityFateEye::createInstance)
+                    .build("fate_eye");
+            helper.register(new ResourceLocation("prinegorerouse", "fate_eye"), entity);
         });
 
     }

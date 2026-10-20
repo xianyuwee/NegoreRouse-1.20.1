@@ -5,13 +5,14 @@
       "lvl": 10
     }
   ],
+  "item": "prinegorerouse:chaos_blade",
   "name": "prinegorerouse:chaos_blade",
   "properties": {
     "attack_base": 51.0,
     "max_damage": 50,
     "slash_art": "slashblade:sakura_end",
     "special_effects": [
-      "prinegorerouse:oracle"
+      "prinegorerouse:chaos"
     ],
     "sword_type": [
       "bewitched"
@@ -20,7 +21,7 @@
   "render": {
     "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/chaos/chaos_blade.obj",
-    "summon_sword_color": 255236139,
+    "summon_sword_color": 12632256,
     "texture": "prinegorerouse:model/named/custom/chaos/chaos_blade.png"
   }
 }

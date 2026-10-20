@@ -101,6 +101,7 @@ public class CosmicLine {
                     lineDrive.setKnockBack(knockBacks);
                     lineDrive.setLifetime(lifetime);
                     lineDrive.setRotationRoll(roll);
+                    // 命中半径口径：扫掠胶囊半径 = 0.5×baseSize×scale ≈ 2.5 格；实体自身碰撞箱已固定为小块
                     lineDrive.setHitboxScale(5);
 
 

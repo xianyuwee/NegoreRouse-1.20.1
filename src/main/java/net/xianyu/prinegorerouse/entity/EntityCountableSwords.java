@@ -27,6 +27,9 @@ public class EntityCountableSwords extends EntityNRBlisteringSword {
 
     @Override
     protected void onHitEntity(EntityHitResult result) {
+        // 释放者同源排除：不得在本人·坐骑·其女仆宠物身上结算溢出并在其位置连锁生成剑
+        if (isOwnerRelated(result.getEntity())) return;
+
         // 1. 先调用父类逻辑（如果父类有基础伤害处理，需确保顺序）
         super.onHitEntity(result);
 

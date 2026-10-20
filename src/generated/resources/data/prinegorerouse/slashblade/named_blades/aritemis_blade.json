@@ -13,13 +13,15 @@
       "lvl": 5
     }
   ],
+  "item": "prinegorerouse:aritemis_blade",
   "name": "prinegorerouse:aritemis_blade",
   "properties": {
-    "attack_base": 24.0,
+    "attack_base": 22.0,
     "max_damage": 50,
-    "slash_art": "prinegorerouse:magnetic_storm_sword",
+    "slash_art": "slashblade:drive_vertical",
     "special_effects": [
-      "prinegorerouse:clear"
+      "prinegorerouse:oracle",
+      "prinegorerouse:shadoon"
     ],
     "sword_type": [
       "bewitched"
@@ -28,7 +30,7 @@
   "render": {
     "carry_type": "katana",
     "model": "prinegorerouse:model/named/custom/aritemis/artemis_blade.obj",
-    "summon_sword_color": 32178170,
+    "summon_sword_color": 321781705,
     "texture": "prinegorerouse:model/named/custom/aritemis/artemis_blade.png"
   }
 }

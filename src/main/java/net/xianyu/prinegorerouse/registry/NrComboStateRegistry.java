@@ -44,7 +44,8 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -50F, Vec3.ZERO, false, false, 2.0F);
         }).put(3, (entityIn) -> {
-            Zenith12th.doSlash(entityIn, false, 8F);
+            // 穹顶十二式幻影剑：起始飞行速度 3.0，剑在 EntityZenithSword 内于 1s 内逐渐加速到 5.0
+            Zenith12th.doSlash(entityIn, false, 3.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);
         ZENITH12TH = var1000.register("zenith12th", var1002::build);

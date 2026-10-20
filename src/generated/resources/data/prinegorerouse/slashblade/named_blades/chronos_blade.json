@@ -17,6 +17,7 @@
       "lvl": 5
     }
   ],
+  "item": "prinegorerouse:chronos_blade",
   "name": "prinegorerouse:chronos_blade",
   "properties": {
     "attack_base": 25.0,

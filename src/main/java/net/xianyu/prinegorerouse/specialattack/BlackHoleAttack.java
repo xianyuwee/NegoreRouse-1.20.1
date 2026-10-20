@@ -5,10 +5,8 @@ import mods.flammpfeil.slashblade.item.ItemSlashBlade;
 import mods.flammpfeil.slashblade.util.KnockBacks;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fml.common.Mod;
 import net.xianyu.prinegorerouse.entity.EntityCountableSwords;
@@ -17,8 +15,6 @@ import net.xianyu.prinegorerouse.entity.EntityShinyDrive;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 import net.xianyu.prinegorerouse.utils.BlackHoleUtil;
 
-import java.util.Comparator;
-import java.util.List;
 import java.util.Random;
 
 @Mod.EventBusSubscriber
@@ -61,11 +57,13 @@ public class BlackHoleAttack {
         Vec3 lookVec = playerIn.getLookAngle();
         Vec3 eyePos = playerIn.getEyePosition(1.0F);
         Vec3 targetPos;
-        LivingEntity nearestTarget = findNearestHostileTarget(playerIn);
+        // 统一索敌（锁定→准星方向→最近）；叠层已合并至 Eternity.onPerformSlashArt，此处不再加层
+        ISlashBladeState bladeState = playerIn.getMainHandItem()
+                .getCapability(ItemSlashBlade.BLADESTATE).resolve().orElse(null);
+        LivingEntity nearestTarget = BlackHoleUtil.selectTarget(playerIn, bladeState);
 
         if (nearestTarget != null) {
             targetPos = nearestTarget.getEyePosition();
-            BlackHoleUtil.addBlackHoleCount(nearestTarget, 1);
         } else {
             targetPos = eyePos.add(lookVec.scale(20));
         }
@@ -73,8 +71,8 @@ public class BlackHoleAttack {
         int safeDcount = Math.min(this.Dcount, 20);
         int safeScount = Math.min(this.Scount, 30);
 
-        // 传入计算好的 finalDamage
-        generateShinyDrives(world, targetPos, playerIn, 5.0, safeDcount, roll, lifetime, finalDamage, knockBacks, speed);
+        // 传入计算好的 finalDamage（收环半径 5→3.2：更紧凑，视觉重心不散）
+        generateShinyDrives(world, targetPos, playerIn, 3.2, safeDcount, roll, lifetime, finalDamage, knockBacks, speed);
         generateSwords(world, targetPos, playerIn, safeScount, lifetime, finalDamage, speed);
     }
 
@@ -131,9 +129,13 @@ public class BlackHoleAttack {
             drive.setDamage(damage); // 使用传入的动态伤害
             drive.setKnockBack(knockBacks);
             drive.setSpeed(3.0F);
-            drive.setDelayTick(20);
-            drive.setDelaySpeed(0.01f);
+            // 节奏收紧：延迟 20→8 tick、收环加速度 0.01→0.03，消除“拖沓”的悬停感
+            drive.setDelayTick(8);
+            drive.setDelaySpeed(0.03f);
             drive.setColor(0xFFD700);
+            // 与 Oracle 剑气完全一致：穿透方块 + 无碰撞 + 方案A半径命中 + 小碰撞箱（实体侧按 isPierce 自动切换）
+            drive.setNoClip(true);
+            drive.setPierce(true);
             drive.shoot(toCenter.x, toCenter.y, toCenter.z, speed, 0.0F);
             world.addFreshEntity(drive);
         }
@@ -142,11 +144,12 @@ public class BlackHoleAttack {
     private void generateSwords(Level world, Vec3 center, LivingEntity owner, int count,
                                 int lifetime, double damage, float speed) {
         for (int i = 0; i < count; i++) {
-            double r = 5 + RANDOM.nextDouble() * 5;
+            // 重做撒布：半径 5~10→3~5.5、高度 +5→+3.2，剑雨更贴近目标、不再“从天边外飞来”
+            double r = 3.0 + RANDOM.nextDouble() * 2.5;
             double angle = RANDOM.nextDouble() * 2 * Math.PI;
             double x = center.x + r * Math.cos(angle);
             double z = center.z + r * Math.sin(angle);
-            double y = center.y + 5;
+            double y = center.y + 3.2;
             Vec3 spawnPos = new Vec3(x, y, z);
 
             Vec3 toCenter = center.subtract(spawnPos);
@@ -165,7 +168,8 @@ public class BlackHoleAttack {
             sword.setDeltaMovement(toCenter.normalize().scale(speed));
             sword.setLifeTime(lifetime);
             sword.setDamage(damage); // 使用传入的动态伤害
-            sword.setDelayTicks(i);
+            // 逐发延迟 i→i/2：半速递进，收拢节奏
+            sword.setDelayTicks(i / 2);
             sword.setSpeed(speed);
             sword.setCenterPosition(center);
             sword.setChange(false);
@@ -185,21 +189,12 @@ public class BlackHoleAttack {
             sword2.setLifeTime(lifetime);
             sword2.setDamage(damage); // 使用传入的动态伤害
             sword2.setSpeed(speed);
-            sword2.setDelayTicks(i);
+            sword2.setDelayTicks(i / 2);
             sword2.setCenterPosition(center);
             sword2.setChange(false);
             sword2.setColor(245245220);
             sword2.setNoClip(true);
             world.addFreshEntity(sword2);
         }
-    }
-
-    private static LivingEntity findNearestHostileTarget(LivingEntity player) {
-        AABB area = player.getBoundingBox().inflate(32);
-        List<LivingEntity> targets = player.level().getEntitiesOfClass(LivingEntity.class, area, e ->
-                e instanceof Enemy && e.isAlive()
-        );
-        if (targets.isEmpty()) return null;
-        return targets.stream().min(Comparator.comparingDouble(e -> e.distanceToSqr(player))).orElse(null);
     }
 }
