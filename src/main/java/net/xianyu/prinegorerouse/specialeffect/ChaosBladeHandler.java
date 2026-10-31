@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xianyu.prinegorerouse.config.NRConfig;
@@ -86,6 +87,15 @@ public final class ChaosBladeHandler {
     @SubscribeEvent
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         USED_THIS_SESSION.remove(event.getEntity().getUUID());
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        clear();
+    }
+
+    public static void clear() {
+        USED_THIS_SESSION.clear();
     }
 
     /** 死亡 Clone：把“本存档是否已转化”标志从旧玩家带到新玩家（ForgeData 不会自动拷贝）。 */

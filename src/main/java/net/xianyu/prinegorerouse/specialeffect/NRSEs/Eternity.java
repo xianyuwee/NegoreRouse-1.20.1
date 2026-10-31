@@ -3,14 +3,16 @@ package net.xianyu.prinegorerouse.specialeffect.NRSEs;
 import mods.flammpfeil.slashblade.capability.slashblade.ISlashBladeState;
 import mods.flammpfeil.slashblade.event.SlashBladeEvent;
 import mods.flammpfeil.slashblade.slasharts.SlashArts;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xianyu.prinegorerouse.compat.MaidCompat;
@@ -22,6 +24,7 @@ import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
 import net.xianyu.prinegorerouse.specialeffect.NRSpecialEffect;
 import net.xianyu.prinegorerouse.utils.BlackHoleUtil;
 
+import java.lang.ref.WeakReference;
 import java.util.Random;
 
 /**
@@ -149,16 +152,34 @@ public class Eternity extends NRSpecialEffect {
             return;
         }
         BlackHoleUtil.WATCHED.entrySet().removeIf(entry -> {
-            Entity entity = entry.getValue();
-            int count = BlackHoleUtil.getBlackHoleCount(entity);
-            // 清理：死亡/被移除/层数归零/世界已卸载
-            if (entity == null || !entity.isAlive() || entity.isRemoved() || count <= 0
+            WeakReference<Entity> ref = entry.getValue();
+            Entity entity = ref != null ? ref.get() : null;
+            if (entity == null || !entity.isAlive() || entity.isRemoved()
                     || !(entity.level() instanceof ServerLevel sl)) {
+                return true;
+            }
+            int count = BlackHoleUtil.getBlackHoleCount(entity);
+            // 清理：层数归零
+            if (count <= 0) {
                 return true;
             }
             emitBlackHoleParticles(sl, entity, count);
             return false;
         });
+    }
+
+    /** 实体离开维度/注销时从观察名单移除，防内存泄漏 */
+    @SubscribeEvent
+    public static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {
+        if (!event.getLevel().isClientSide()) {
+            BlackHoleUtil.WATCHED.remove(event.getEntity().getUUID());
+        }
+    }
+
+    /** 服务端停机/退出世界时清空观察名单 */
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        BlackHoleUtil.clear();
     }
 
     /**

@@ -13,7 +13,16 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.xianyu.prinegorerouse.entity.EntityStormSword;
+import net.xianyu.prinegorerouse.specialeffect.ChaosBladeHandler;
+import net.xianyu.prinegorerouse.specialeffect.ChaosHandler;
+import net.xianyu.prinegorerouse.specialeffect.NRSEs.Empty;
+import net.xianyu.prinegorerouse.specialeffect.NRSEs.Fate;
+import net.xianyu.prinegorerouse.specialeffect.NRSEs.Porgatory;
+import net.xianyu.prinegorerouse.utils.BlackHoleUtil;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -75,6 +84,8 @@ public class prinegorerouse {
 //      ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
 
         MinecraftForge.EVENT_BUS.addListener(this::onWorldLoad);
+        MinecraftForge.EVENT_BUS.addListener(this::onServerStopped);
+        MinecraftForge.EVENT_BUS.addListener(this::onDatapackSync);
 
         // 注册配置（其余通用开关仍走 toml；难度已改为世界存档数据，不再依赖配置文件）
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, NRConfig.COMMON_CONFIG);
@@ -106,6 +117,30 @@ public class prinegorerouse {
             WeaponSystem.setDifficulty(difficulty);
 
             serverLevel.getServer().execute(() ->
+                    NRBladeRuntimeRecipeRegistry.refreshRecipes(recipeManager));
+        }
+    }
+
+    // 服务端停止/退出世界：重置配方注入状态与全局静态缓存，防内存泄漏与单机切世界配方/难度失效
+    private void onServerStopped(ServerStoppedEvent event) {
+        NRBladeRuntimeRecipeRegistry.resetInjection();
+        ChaosHandler.clearDefinitionsCache();
+        ChaosHandler.clearThreadLocals();
+        ChaosBladeHandler.clear();
+        Empty.clear();
+        Porgatory.clear();
+        BlackHoleUtil.clear();
+        Fate.clear();
+        EntityStormSword.clear();
+    }
+
+    // 数据包同步/重载事件：执行 /reload 时重置定义缓存并重新注入配方
+    private void onDatapackSync(OnDatapackSyncEvent event) {
+        if (event.getPlayer() == null && event.getPlayerList() != null && event.getPlayerList().getServer() != null) {
+            ChaosHandler.clearDefinitionsCache();
+            NRBladeRuntimeRecipeRegistry.resetInjection();
+            RecipeManager recipeManager = event.getPlayerList().getServer().getRecipeManager();
+            event.getPlayerList().getServer().execute(() ->
                     NRBladeRuntimeRecipeRegistry.refreshRecipes(recipeManager));
         }
     }

@@ -15,6 +15,8 @@ import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xianyu.prinegorerouse.aquatime.AquaTimeData;
@@ -24,9 +26,11 @@ import net.xianyu.prinegorerouse.specialeffect.ChaosHandler;
 import net.xianyu.prinegorerouse.specialeffect.NRSpecialEffect;
 import net.xianyu.prinegorerouse.utils.DamageTypeHolderUtils;
 
-import java.util.HashMap;
+import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Empty（虚无）特效：命中即给目标生物打上“必死标记”——先把血量归零，并以<b>玩家伤害来源</b>触发死亡，
@@ -48,17 +52,17 @@ public class Empty extends NRSpecialEffect {
     /** 玩家攻击伤害类型 id（保证死亡归属为“玩家击杀”）。 */
     private static final String PLAYER_ATTACK = "minecraft:player_attack";
 
-    /** 服务端 tick 循环持有的必死标记：目标实体 id -> 标记。 */
-    private static final Map<Integer, Mark> MARKS = new HashMap<>();
+    /** 服务端 tick 循环持有的必死标记：目标实体 UUID -> 标记（使用弱引用防止实体与服务端世界实例内存泄漏）。 */
+    private static final Map<UUID, Mark> MARKS = new ConcurrentHashMap<>();
 
     private static final class Mark {
-        final LivingEntity target;
-        ServerPlayer killer;
+        final WeakReference<LivingEntity> targetRef;
+        WeakReference<ServerPlayer> killerRef;
         int cooldown;
 
         Mark(LivingEntity target, ServerPlayer killer) {
-            this.target = target;
-            this.killer = killer;
+            this.targetRef = new WeakReference<>(target);
+            this.killerRef = killer != null ? new WeakReference<>(killer) : null;
             this.cooldown = REAP_INTERVAL;
         }
     }
@@ -90,12 +94,12 @@ public class Empty extends NRSpecialEffect {
         }
 
         // 登记标记（已存在则刷新击杀者与冷却），随后立即执行首次削减
-        Mark existing = MARKS.get(target.getId());
+        Mark existing = MARKS.get(target.getUUID());
         if (existing != null) {
-            existing.killer = sp;
+            existing.killerRef = new WeakReference<>(sp);
             existing.cooldown = REAP_INTERVAL;
         } else {
-            MARKS.put(target.getId(), new Mark(target, sp));
+            MARKS.put(target.getUUID(), new Mark(target, sp));
         }
         reap(target, sp, sl);
         // 命中瞬间给一次头顶爆闪提示，便于玩家感知标记已生效
@@ -110,12 +114,12 @@ public class Empty extends NRSpecialEffect {
         if (event.phase != TickEvent.Phase.END || MARKS.isEmpty()) {
             return;
         }
-        Iterator<Map.Entry<Integer, Mark>> it = MARKS.entrySet().iterator();
+        Iterator<Map.Entry<UUID, Mark>> it = MARKS.entrySet().iterator();
         while (it.hasNext()) {
             Mark m = it.next().getValue();
-            LivingEntity t = m.target;
-            // 目标已死亡/被移除/不在服务端 -> 结束标记
-            if (t.isRemoved() || !t.isAlive() || !(t.level() instanceof ServerLevel sl)) {
+            LivingEntity t = m.targetRef.get();
+            // 目标已死亡/被移除/不在服务端/已被回收 -> 结束标记
+            if (t == null || t.isRemoved() || !t.isAlive() || !(t.level() instanceof ServerLevel sl)) {
                 it.remove();
                 continue;
             }
@@ -131,17 +135,39 @@ public class Empty extends NRSpecialEffect {
             // 到点仍未死：再次削减，并补一个爆闪提示
             m.cooldown = REAP_INTERVAL;
             sl.sendParticles(ParticleTypes.EXPLOSION, hx, hy, hz, 1, 0.0, 0.0, 0.0, 0.0);
-            reap(t, m.killer, sl);
+            ServerPlayer killer = m.killerRef != null ? m.killerRef.get() : null;
+            reap(t, killer, sl);
         }
+    }
+
+    /** 实体离开维度/注销时一定要记得移除标记，跨存档或维度卸载内存泄漏就糟了 */
+    @SubscribeEvent
+    public static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {
+        if (!event.getLevel().isClientSide()) {
+            MARKS.remove(event.getEntity().getUUID());
+        }
+    }
+
+    /** 服务端停机/退出世界时清空所有残留标记 */
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        clear();
+    }
+
+    public static void clear() {
+        MARKS.clear();
     }
 
     /** 一次“必死削减”：血量归零 + 以玩家伤害来源触发死亡（掉落/经验按玩家击杀正常结算）。 */
     private static void reap(LivingEntity target, ServerPlayer killer, ServerLevel level) {
-        target.setLastHurtByPlayer(killer);            // 记为玩家所伤，保证按玩家击杀掉落经验
-        target.setHealth(0.0F);                        // 先将血量置 0
-        DamageSource src = new DamageSource(
-                DamageTypeHolderUtils.getHolder(level, PLAYER_ATTACK), killer, killer);
-        target.die(src);                               // 触发死亡事件：归属/掉落/经验均按玩家击杀结算
+        if (killer != null) {
+            target.setLastHurtByPlayer(killer); // 记为玩家所伤，保证按玩家击杀掉落经验
+        }
+        target.setHealth(0.0F); // 先将血量置 0
+        DamageSource src = killer != null
+                ? new DamageSource(DamageTypeHolderUtils.getHolder(level, PLAYER_ATTACK), killer, killer)
+                : level.damageSources().generic();
+        target.die(src); // 触发死亡事件：归属/掉落/经验均按玩家击杀结算
     }
 
     /** 头顶 2 格处的一次爆闪提示。 */
