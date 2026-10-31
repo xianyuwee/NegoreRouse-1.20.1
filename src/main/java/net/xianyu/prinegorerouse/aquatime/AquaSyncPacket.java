@@ -1,14 +1,15 @@
 package net.xianyu.prinegorerouse.aquatime;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
-import net.xianyu.prinegorerouse.client.ClientAquaState;
+import net.xianyu.prinegorerouse.client.NRClientPacketHandler;
 
 import java.util.function.Supplier;
 
 /**
  * 服务端 -> 客户端：同步玩家当前时间素数量，供客户端 HUD / 背包格子的流体计量表展示。
- * 只在客户端执行 handle，因此引用客户端类是安全的。
  */
 public class AquaSyncPacket {
     private final long amount;
@@ -35,7 +36,9 @@ public class AquaSyncPacket {
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> ClientAquaState.set(this.amount, this.emptyBanned));
+        ctx.get().enqueueWork(() ->
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> NRClientPacketHandler.handleAquaSync(this.amount, this.emptyBanned))
+        );
         ctx.get().setPacketHandled(true);
     }
 }
