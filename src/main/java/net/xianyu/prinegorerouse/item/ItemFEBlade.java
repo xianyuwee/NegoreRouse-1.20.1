@@ -1,13 +1,11 @@
 package net.xianyu.prinegorerouse.item;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import mods.flammpfeil.slashblade.capability.concentrationrank.CapabilityConcentrationRank;
 import mods.flammpfeil.slashblade.event.SlashBladeEvent;
 import mods.flammpfeil.slashblade.item.ItemSlashBlade;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,13 +21,14 @@ import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.xianyu.prinegorerouse.aquatime.AquaTimeData;
+import net.xianyu.prinegorerouse.client.ClientItemHelper;
 import net.xianyu.prinegorerouse.client.InputHandler;
-import net.xianyu.prinegorerouse.client.renderer.EnergyBladeBEWLR;
 import net.xianyu.prinegorerouse.energy.FEBladeStorage;
 import net.xianyu.prinegorerouse.energy.FECapabilityProvider;
-import org.lwjgl.glfw.GLFW;
-import net.xianyu.prinegorerouse.aquatime.AquaTimeData;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -93,7 +92,7 @@ public class ItemFEBlade extends ItemNRBlade {
                 .map(FEBladeStorage.class::cast).ifPresent(energy -> {
                     Minecraft mc = Minecraft.getInstance();
                     KeyMapping shift = mc.options.keyShift;
-                    if (!isShiftKeyDown()) {
+                    if (!ClientItemHelper.isShiftKeyDown()) {
                         // 动态实时显示具体按键
                         Component shiftKey = Component.literal("[").append(shift.getTranslatedKeyMessage().copy())
                                 .append("]").withStyle(ChatFormatting.GOLD);
@@ -134,9 +133,13 @@ public class ItemFEBlade extends ItemNRBlade {
         return stack.getCapability(ForgeCapabilities.ENERGY).filter(FEBladeStorage.class::isInstance)
                 .map(FEBladeStorage.class::cast)
                 .map(energy ->
-                        isShiftKeyDown() || energy.isPowered()
+                        (FMLEnvironment.dist == Dist.CLIENT && isShiftKeyDownSafe()) || energy.isPowered()
                 )
                 .orElse(false);
+    }
+
+    private static boolean isShiftKeyDownSafe() {
+        return DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> ClientItemHelper::isShiftKeyDown) == Boolean.TRUE;
     }
 
     @Override
@@ -157,16 +160,7 @@ public class ItemFEBlade extends ItemNRBlade {
     // 覆写该方法用以修改拔刀剑渲染(具体参考EnergyBladeBEWLR类)
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            BlockEntityWithoutLevelRenderer renderer = new EnergyBladeBEWLR(
-                    Minecraft.getInstance().getBlockEntityRenderDispatcher(),
-                    Minecraft.getInstance().getEntityModels());
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                return renderer;
-            }
-        });
+        consumer.accept(ClientItemHelper.getEnergyBladeItemExtensions());
     }
 
     // 覆写该方法用以修改拔刀剑的能力(具体参考FECapabilityProvider类)
@@ -191,19 +185,6 @@ public class ItemFEBlade extends ItemNRBlade {
         if (AquaTimeData.get(sp) >= bladeFE.getStandbyExtract()) {
             bladeFE.setPowered(true);
         }
-    }
-
-    private boolean isShiftKeyDown() {
-        Minecraft mc = Minecraft.getInstance();
-        KeyMapping shift = mc.options.keyShift;
-        InputConstants.Key key = shift.getKey();
-        long window = mc.getWindow().getWindow();
-        if (key.getType() == InputConstants.Type.KEYSYM) {
-            return GLFW.glfwGetKey(window, key.getValue()) == GLFW.GLFW_PRESS;
-        } else if (key.getType() == InputConstants.Type.MOUSE) {
-            return GLFW.glfwGetMouseButton(window, key.getValue()) == GLFW.GLFW_PRESS;
-        }
-        return false;
     }
 
     @SubscribeEvent
