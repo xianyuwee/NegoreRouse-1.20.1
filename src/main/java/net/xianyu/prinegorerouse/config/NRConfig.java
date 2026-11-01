@@ -121,7 +121,7 @@ public class NRConfig {
 
         // CHAOS 卡俄斯吞噬特效：SE 解锁费用 = i * k * 10000^(n-1)；阶段伤害与虚空伤害按吞噬量数量级。
         COMMON_BUILDER.comment("Chaos SpecialEffect Settings").push("chaos");
-        CHAOS_K = COMMON_BUILDER.comment("Universal conversion constant k in the Chaos SE cost formula i*k*10000^(n-1).")
+        CHAOS_K = COMMON_BUILDER.comment("Universal conversion constant k in the Chaos SE cost formula i*k*10000*(n-1).")
                 .defineInRange("convert_k", 1L, 0L, Long.MAX_VALUE);
         CHAOS_MAX_STAGE = COMMON_BUILDER.comment("Highest reachable Chaos stage (stage advances each order of magnitude of devoured AquaTime).")
                 .defineInRange("max_stage", 5, 0, 1000);

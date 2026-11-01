@@ -304,6 +304,10 @@ public class Clear extends NRSpecialEffect {
                 EntityCountableSwords.spawnSwords(player, world, center,
                         EntityNRBlisteringSword.SpawnMode.RANDOM, 1, false, 0, 0, 0, 0,
                         damage, 0x33FF33, true, 5);
+            } else if (chosenClass == EntityStormSword.class) {
+                EntityStormSword.spawnSwords(player, world, center,
+                        EntityNRBlisteringSword.SpawnMode.RANDOM, 1, false, 0, 0, 0, 0,
+                        damage, 0x33FFFF, true, 5);
             }
         } catch (Exception e) {
             // 降级：生成一个普通的 NRBlisteringSword

@@ -543,7 +543,7 @@ public final class ChaosHandler {
         return n;
     }
 
-    /** CHAOS 公式费用：线性 i * k * 10000 * (n-1)，基准偏移一位使首次解锁也收费。 */
+    /** CHAOS 公式费用：线性 i * k * 10000 * (n-1)，第一次解锁不收费。 */
     public static long chaosSECost(ItemStack chaos, ResourceLocation seId) {
         int n = activeGainedSECount(chaos) + 1;
         long i = SpecialEffect.getRequestLevel(seId);
@@ -551,8 +551,8 @@ public final class ChaosHandler {
         if (i <= 0L) {
             return 0L;
         }
-        // 线性：乘子取 (n)=已激活获得SE数+1（基准偏移，原式 (n-1) 会使首个免费）
-        double cost = (double) i * (double) k * 10000.0 * (double) n;
+        // 线性：乘子取 (n)=已激活获得SE数+1
+        double cost = (double) i * (double) k * 10000.0 * (double) (n-1);
         if (Double.isNaN(cost) || cost >= (double) Long.MAX_VALUE) {
             return Long.MAX_VALUE;
         }
