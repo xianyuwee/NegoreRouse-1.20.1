@@ -13,8 +13,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraftforge.event.OnDatapackSyncEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -158,12 +157,12 @@ public class prinegorerouse {
             RecipeManager recipeManager = server.getRecipeManager();
             server.execute(() -> {
                 NRBladeRuntimeRecipeRegistry.refreshRecipes(recipeManager);
+                ClientboundUpdateRecipesPacket packet = new ClientboundUpdateRecipesPacket(recipeManager.getRecipes());
                 for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                    player.connection.send(packet);
                     NetworkPacketHandler.sendToClientPlayer(new BladeRecipeReloadPacket(), player);
                 }
             });
-        }
-    }
         }
     }
 
