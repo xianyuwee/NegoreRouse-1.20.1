@@ -16,7 +16,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xianyu.prinegorerouse.NetworkPacketHandler;
@@ -26,10 +28,11 @@ import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
 import net.xianyu.prinegorerouse.specialeffect.NRSpecialEffect;
 import net.xianyu.prinegorerouse.specialeffect.PorgatoryRingPacket;
 
-import java.util.HashMap;
+import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 禁锢（Purgatory）。
@@ -71,19 +74,19 @@ public class Porgatory extends NRSpecialEffect {
     private static final UUID MOVE_UUID = UUID.fromString("b7f5f2c1-8a1e-4d3b-9c2f-6a1d0e5f4a30");
     private static final UUID ATK_UUID = UUID.fromString("c8a603d2-9b2f-5e4c-0d3a-7b2e1f6a5b41");
 
-    /** 服务端削弱状态表：实体 id -> 状态。 */
-    private static final Map<Integer, PurgState> STATES = new HashMap<>();
+    /** 服务端削弱状态表：目标实体 UUID -> 状态（使用弱引用防止实体与服务端世界实例内存泄漏）。 */
+    private static final Map<UUID, PurgState> STATES = new ConcurrentHashMap<>();
 
     /** 单个目标的禁锢状态。 */
     private static final class PurgState {
-        final LivingEntity target;
+        final WeakReference<LivingEntity> targetRef;
         int stacks;
         int debuffTicks;   // 削弱剩余 tick
         int aiTicks;       // 删 AI 剩余 tick（独立）
         boolean noAi;      // 当前是否已 setNoAi，避免重复调用
 
         PurgState(LivingEntity target) {
-            this.target = target;
+            this.targetRef = new WeakReference<>(target);
         }
     }
 
@@ -161,7 +164,7 @@ public class Porgatory extends NRSpecialEffect {
      * 叠满时对 {@link Mob} 删 AI（独立计时）。返回叠层后的最新层数。
      */
     private static int applyStack(LivingEntity target, AttributeInstance move) {
-        PurgState st = STATES.computeIfAbsent(target.getId(), k -> new PurgState(target));
+        PurgState st = STATES.computeIfAbsent(target.getUUID(), k -> new PurgState(target));
         st.stacks = Math.min(st.stacks + 1, MAX_STACKS);
         st.debuffTicks = STACK_DURATION;
 
@@ -219,11 +222,11 @@ public class Porgatory extends NRSpecialEffect {
         if (event.phase != TickEvent.Phase.END || STATES.isEmpty()) {
             return;
         }
-        Iterator<Map.Entry<Integer, PurgState>> it = STATES.entrySet().iterator();
+        Iterator<Map.Entry<UUID, PurgState>> it = STATES.entrySet().iterator();
         while (it.hasNext()) {
             PurgState st = it.next().getValue();
-            LivingEntity t = st.target;
-            if (t.isRemoved() || !t.isAlive()) {
+            LivingEntity t = st.targetRef.get();
+            if (t == null || t.isRemoved() || !t.isAlive()) {
                 it.remove();
                 continue;
             }
@@ -243,6 +246,24 @@ public class Porgatory extends NRSpecialEffect {
                 it.remove();
             }
         }
+    }
+
+    /** 实体离开维度/注销时移除状态，跨存档或维度卸载造成内存泄漏了 */
+    @SubscribeEvent
+    public static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {
+        if (!event.getLevel().isClientSide()) {
+            STATES.remove(event.getEntity().getUUID());
+        }
+    }
+
+    /** 服务端停机/退出世界时清空所有残留状态 */
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        clear();
+    }
+
+    public static void clear() {
+        STATES.clear();
     }
 
     /** 移除移速/攻速削弱修改器。 */

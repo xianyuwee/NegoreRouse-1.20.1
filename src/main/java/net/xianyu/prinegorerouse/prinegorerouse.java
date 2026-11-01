@@ -18,7 +18,16 @@ import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.xianyu.prinegorerouse.entity.EntityStormSword;
+import net.xianyu.prinegorerouse.specialeffect.ChaosBladeHandler;
+import net.xianyu.prinegorerouse.specialeffect.ChaosHandler;
+import net.xianyu.prinegorerouse.specialeffect.NRSEs.Empty;
+import net.xianyu.prinegorerouse.specialeffect.NRSEs.Fate;
+import net.xianyu.prinegorerouse.specialeffect.NRSEs.Porgatory;
+import net.xianyu.prinegorerouse.utils.BlackHoleUtil;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -121,15 +130,25 @@ public class prinegorerouse {
         }
     }
 
-    // 服务端停止/退出世界：重置配方注入状态与难度，彻底修复单机切存档导致动态配方丢失与难度数据残留的 Bug
+    // 服务端停止/退出世界：重置配方注入状态、难度与全局静态缓存，防内存泄漏与单机切世界配方/难度失效
     private void onServerStopped(ServerStoppedEvent event) {
         NRBladeRuntimeRecipeRegistry.resetInjection();
         WeaponSystem.reset();
+        ChaosHandler.clearDefinitionsCache();
+        ChaosHandler.clearThreadLocals();
+        ChaosBladeHandler.clear();
+        Empty.clear();
+        Porgatory.clear();
+        BlackHoleUtil.clear();
+        Fate.clear();
+        EntityStormSword.clear();
     }
 
-    // 数据包同步/重载事件：执行 /reload 时重新应用难度并热重载配方与同步客户端
+    // 数据包同步/重载事件：执行 /reload 时重置定义缓存、重新应用难度并热重载配方与同步客户端
     private void onDatapackSync(OnDatapackSyncEvent event) {
         if (event.getPlayer() == null && event.getPlayerList() != null && event.getPlayerList().getServer() != null) {
+            ChaosHandler.clearDefinitionsCache();
+            NRBladeRuntimeRecipeRegistry.resetInjection();
             MinecraftServer server = event.getPlayerList().getServer();
             ServerLevel overworld = server.overworld();
             if (overworld != null) {
@@ -143,6 +162,8 @@ public class prinegorerouse {
                     NetworkPacketHandler.sendToClientPlayer(new BladeRecipeReloadPacket(), player);
                 }
             });
+        }
+    }
         }
     }
 

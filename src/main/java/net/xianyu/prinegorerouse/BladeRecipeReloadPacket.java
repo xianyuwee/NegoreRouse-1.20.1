@@ -1,8 +1,10 @@
 package net.xianyu.prinegorerouse;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
-import net.xianyu.prinegorerouse.client.NRJeiRecipeReloader;
+import net.xianyu.prinegorerouse.client.NRClientPacketHandler;
 
 import java.util.function.Supplier;
 
@@ -24,7 +26,9 @@ public class BladeRecipeReloadPacket {
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(NRJeiRecipeReloader::forceReloadJeiRecipes);
+        ctx.get().enqueueWork(() ->
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> NRClientPacketHandler.handleBladeRecipeReload())
+        );
         ctx.get().setPacketHandled(true);
     }
 }

@@ -12,6 +12,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.entity.PartEntity;
 import net.xianyu.prinegorerouse.compat.MaidCompat;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,10 +28,10 @@ public class BlackHoleUtil {
     public static final int MAX_STACKS = 10;
 
     /**
-     * 服务端可视化观察名单：UUID→实体。叠层时登记；{@code Eternity} 的 tick 定期扫描广播粒子，
-     * 并对（死亡/离世/层数归零）条目做清理。避免全世界实体扫描。
+     * 做成服务端可视化观察名单：UUID→实体弱引用。叠层时登记；{@code Eternity} 的 tick 定期扫描广播粒子，
+     * 并对（死亡/离世/层数归零/被回收）条目做清理。使用弱引用避免强引用导致世界实例无法被 GC。
      */
-    public static final Map<UUID, Entity> WATCHED = new ConcurrentHashMap<>();
+    public static final Map<UUID, WeakReference<Entity>> WATCHED = new ConcurrentHashMap<>();
 
     private BlackHoleUtil() {
     }
@@ -45,18 +46,22 @@ public class BlackHoleUtil {
         return tag.getInt(BLACK_HOLE_TAG);
     }
 
-    /** 叠加层数（封顶 {@link #MAX_STACKS}），并把实体登记进可视化观察名单。 */
+    /** 叠加层数（封顶 {@link #MAX_STACKS}），并把实体弱引用登记进可视化观察名单。 */
     public static void addBlackHoleCount(Entity entity, int amount) {
         CompoundTag tag = getPersistentTag(entity);
         int count = tag.getInt(BLACK_HOLE_TAG);
         tag.putInt(BLACK_HOLE_TAG, Math.min(count + amount, MAX_STACKS));
-        WATCHED.put(entity.getUUID(), entity);
+        WATCHED.put(entity.getUUID(), new WeakReference<>(entity));
     }
 
     public static void resetBlackHoleCount(Entity entity) {
         CompoundTag tag = getPersistentTag(entity);
         tag.putInt(BLACK_HOLE_TAG, 0);
         WATCHED.remove(entity.getUUID());
+    }
+
+    public static void clear() {
+        WATCHED.clear();
     }
 
     /** 把多段生物（末影龙部件等）归并到本体。 */

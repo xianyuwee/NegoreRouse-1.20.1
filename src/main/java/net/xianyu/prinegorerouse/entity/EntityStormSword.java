@@ -13,10 +13,11 @@ import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class EntityStormSword extends EntityNRBlisteringSword{
-    // 爆炸冷却机制：防止同一实体在同一tick内多次爆炸
-    private static final Set<Entity> explodedEntitiesThisTick = new HashSet<>();
+    // 爆炸冷却机制：防止同一实体在同一tick内多次爆炸（存储 UUID 标量，避免持有 Entity 强引用导致 ServerLevel 无法被 GC）
+    private static final Set<UUID> explodedEntitiesThisTick = new HashSet<>();
     private static long lastTickProcessed = -1;
 
     public EntityStormSword(EntityType<? extends Projectile> entityTypeIn, Level worldIn) {
@@ -34,14 +35,15 @@ public class EntityStormSword extends EntityNRBlisteringSword{
         Level level = entity.level();
         if (!level.isClientSide()) {
             long currentTick = level.getGameTime();
+            UUID targetUuid = entity.getUUID();
 
             // 每tick重置冷却列表
             if (currentTick != lastTickProcessed) {
                 explodedEntitiesThisTick.clear();
                 lastTickProcessed = currentTick;
             }
-            if (!(explodedEntitiesThisTick.contains(entity))) {
-                explodedEntitiesThisTick.add(entity);
+            if (!(explodedEntitiesThisTick.contains(targetUuid))) {
+                explodedEntitiesThisTick.add(targetUuid);
                 if (!(entity instanceof LivingEntity)) return;
                 Explosion explosion = level.explode(null, entity.getEyePosition().x,
                         entity.getEyePosition().y, entity.getEyePosition().z, 0.1f, true, Level.ExplosionInteraction.NONE);
@@ -49,6 +51,11 @@ public class EntityStormSword extends EntityNRBlisteringSword{
             }
         }
         super.onHitEntity(result);
+    }
+
+    public static void clear() {
+        explodedEntitiesThisTick.clear();
+        lastTickProcessed = -1;
     }
 
     public static void spawnSwords(LivingEntity owner, Level world, Vec3 centerPos, SpawnMode mode, int count,

@@ -19,6 +19,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xianyu.prinegorerouse.compat.MaidCompat;
@@ -29,12 +31,11 @@ import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
 import net.xianyu.prinegorerouse.specialeffect.NRSpecialEffect;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Fate（炯恻）SE。
@@ -62,7 +63,7 @@ public class Fate extends NRSpecialEffect {
     private static final double EYE_ABOVE = 2.0;
 
     /** 服务端每玩家的眼生成冷却计数（tick）。 */
-    private static final Map<UUID, Integer> COOLDOWNS = new HashMap<>();
+    private static final Map<UUID, Integer> COOLDOWNS = new ConcurrentHashMap<>();
 
     @SubscribeEvent
     public static void onSlashBladeHit(SlashBladeEvent.HitEvent event) {
@@ -140,6 +141,22 @@ public class Fate extends NRSpecialEffect {
             spawnEye(player, target);
             COOLDOWNS.put(player.getUUID(), EYE_INTERVAL);
         }
+    }
+
+    /** 玩家离线时移除其冷却记录，避免 Map 内存泄漏 */
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        COOLDOWNS.remove(event.getEntity().getUUID());
+    }
+
+    /** 服务端停机/退出世界时清空冷却记录 */
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        clear();
+    }
+
+    public static void clear() {
+        COOLDOWNS.clear();
     }
 
     /** 取手持（主手优先、否则副手）携带且已激活炯恻的刀；无则返回 {@code null}（判定仿 {@code Porgatory}）。 */

@@ -33,7 +33,9 @@ import net.xianyu.prinegorerouse.prinegorerouse;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
 import net.xianyu.prinegorerouse.utils.DamageTypeHolderUtils;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -281,6 +283,10 @@ public final class ChaosHandler {
      * 定义注册表运行期不变；缓存其快照，避免每次卡俄斯攻击都全量遍历并分配一个新 List（GC churn）。
      */
     private static volatile List<SlashBladeDefinition> DEFINITIONS;
+
+    public static void clearDefinitionsCache() {
+        DEFINITIONS = null;
+    }
 
     private static List<SlashBladeDefinition> definitionsOf(HolderLookup.Provider registries) {
         List<SlashBladeDefinition> d = DEFINITIONS;
@@ -665,25 +671,39 @@ public final class ChaosHandler {
      * {@link LivingHurtEvent} 的 HIGHEST/LOWEST 夹心记录“这一刀是谁挥的”，
      * 用于女仆持用卡俄斯时屏蔽 SE 伤害倍率。
      */
-    private static final ThreadLocal<LivingEntity> CURRENT_ATTACKER = new ThreadLocal<>();
+    private static final ThreadLocal<ArrayDeque<LivingEntity>> CURRENT_ATTACKER_STACK =
+            ThreadLocal.withInitial(ArrayDeque::new);
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onIncomingAttackStart(LivingHurtEvent event) {
         Entity src = event.getSource().getEntity();
         // 仅记录非玩家攻击者（女仆等）；玩家本体无需屏蔽
-        CURRENT_ATTACKER.set(!(src instanceof ServerPlayer) && src instanceof LivingEntity l ? l : null);
+        LivingEntity attacker = (!(src instanceof ServerPlayer) && src instanceof LivingEntity l) ? l : null;
+        CURRENT_ATTACKER_STACK.get().push(attacker);
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public static void onIncomingAttackEnd(LivingHurtEvent event) {
-        CURRENT_ATTACKER.remove();
+        ArrayDeque<LivingEntity> stack = CURRENT_ATTACKER_STACK.get();
+        if (!stack.isEmpty()) {
+            stack.pop();
+        }
+        if (stack.isEmpty()) {
+            CURRENT_ATTACKER_STACK.remove();
+        }
+    }
+
+    public static void clearThreadLocals() {
+        CURRENT_ATTACKER_STACK.remove();
     }
 
     /** 阶段最终伤害加成。 */
     @SubscribeEvent
     public static void onUpdateAttack(SlashBladeEvent.UpdateAttackEvent event) {
         // 女仆适配：女仆持用本 mod 拔刀剑时，卡俄斯的 SE 增伤不生效
-        if (CURRENT_ATTACKER.get() instanceof TamableAnimal) {
+        ArrayDeque<LivingEntity> stack = CURRENT_ATTACKER_STACK.get();
+        LivingEntity currentAttacker = stack.isEmpty() ? null : stack.peek();
+        if (currentAttacker instanceof TamableAnimal) {
             return;
         }
         ItemStack blade = event.getBlade();
