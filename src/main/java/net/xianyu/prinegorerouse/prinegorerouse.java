@@ -9,7 +9,11 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -106,24 +110,29 @@ public class prinegorerouse {
         // 只在服务端世界加载时执行
         if (event.getLevel().isClientSide()) return;
 
-        if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+        if (event.getLevel() instanceof ServerLevel serverLevel) {
             // 检查是否已经注入过（避免每个维度加载都重复注入）
             if (NRBladeRuntimeRecipeRegistry.hasInjectedOnce) return;
             NRBladeRuntimeRecipeRegistry.hasInjectedOnce = true;
 
-            RecipeManager recipeManager = serverLevel.getServer().getRecipeManager();
+            MinecraftServer server = serverLevel.getServer();
+            ServerLevel overworld = server.overworld();
+            ServerLevel targetLevel = overworld != null ? overworld : serverLevel;
+
+            RecipeManager recipeManager = server.getRecipeManager();
             // 读取本存档记忆的难度并应用到运行时（首次进世界 / 新建世界时为默认 5）
-            int difficulty = DifficultySavedData.get(serverLevel).getDifficulty();
+            int difficulty = DifficultySavedData.get(targetLevel).getDifficulty();
             WeaponSystem.setDifficulty(difficulty);
 
-            serverLevel.getServer().execute(() ->
+            server.execute(() ->
                     NRBladeRuntimeRecipeRegistry.refreshRecipes(recipeManager));
         }
     }
 
-    // 服务端停止/退出世界：重置配方注入状态与全局静态缓存，防内存泄漏与单机切世界配方/难度失效
+    // 服务端停止/退出世界：重置配方注入状态、难度与全局静态缓存，防内存泄漏与单机切世界配方/难度失效
     private void onServerStopped(ServerStoppedEvent event) {
         NRBladeRuntimeRecipeRegistry.resetInjection();
+        WeaponSystem.reset();
         ChaosHandler.clearDefinitionsCache();
         ChaosHandler.clearThreadLocals();
         ChaosBladeHandler.clear();
@@ -134,14 +143,26 @@ public class prinegorerouse {
         EntityStormSword.clear();
     }
 
-    // 数据包同步/重载事件：执行 /reload 时重置定义缓存并重新注入配方
+    // 数据包同步/重载事件：执行 /reload 时重置定义缓存、重新应用难度并热重载配方与同步客户端
     private void onDatapackSync(OnDatapackSyncEvent event) {
         if (event.getPlayer() == null && event.getPlayerList() != null && event.getPlayerList().getServer() != null) {
             ChaosHandler.clearDefinitionsCache();
             NRBladeRuntimeRecipeRegistry.resetInjection();
-            RecipeManager recipeManager = event.getPlayerList().getServer().getRecipeManager();
-            event.getPlayerList().getServer().execute(() ->
-                    NRBladeRuntimeRecipeRegistry.refreshRecipes(recipeManager));
+            MinecraftServer server = event.getPlayerList().getServer();
+            ServerLevel overworld = server.overworld();
+            if (overworld != null) {
+                int difficulty = DifficultySavedData.get(overworld).getDifficulty();
+                WeaponSystem.setDifficulty(difficulty);
+            }
+            RecipeManager recipeManager = server.getRecipeManager();
+            server.execute(() -> {
+                NRBladeRuntimeRecipeRegistry.refreshRecipes(recipeManager);
+                ClientboundUpdateRecipesPacket packet = new ClientboundUpdateRecipesPacket(recipeManager.getRecipes());
+                for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                    player.connection.send(packet);
+                    NetworkPacketHandler.sendToClientPlayer(new BladeRecipeReloadPacket(), player);
+                }
+            });
         }
     }
 
