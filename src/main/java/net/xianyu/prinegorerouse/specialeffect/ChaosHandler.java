@@ -674,16 +674,32 @@ public final class ChaosHandler {
     private static final ThreadLocal<ArrayDeque<LivingEntity>> CURRENT_ATTACKER_STACK =
             ThreadLocal.withInitial(ArrayDeque::new);
 
+    /**
+     * 判定本次 {@link LivingHurtEvent} 是否需要记录攻击者：
+     * 仅记录非玩家的生物攻击者（女仆等）；玩家本体与环境伤害（摔落/虚空等，
+     * {@code getSource().getEntity()} 为 null）都返回 null 表示不入栈。
+     * push 与 pop 复用此判定，保证收支平衡。
+     */
+    private static LivingEntity recordableAttacker(LivingHurtEvent event) {
+        Entity src = event.getSource().getEntity();
+        // ArrayDeque 不允许 null 元素，玩家/环境伤害一律返回 null 由调用方跳过入栈
+        return (!(src instanceof ServerPlayer) && src instanceof LivingEntity l) ? l : null;
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onIncomingAttackStart(LivingHurtEvent event) {
-        Entity src = event.getSource().getEntity();
-        // 仅记录非玩家攻击者（女仆等）；玩家本体无需屏蔽
-        LivingEntity attacker = (!(src instanceof ServerPlayer) && src instanceof LivingEntity l) ? l : null;
-        CURRENT_ATTACKER_STACK.get().push(attacker);
+        LivingEntity attacker = recordableAttacker(event);
+        if (attacker != null) {
+            CURRENT_ATTACKER_STACK.get().push(attacker);
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public static void onIncomingAttackEnd(LivingHurtEvent event) {
+        // 与 push 用同一判定：仅当本事件确实入过栈时才弹出，避免收支失衡
+        if (recordableAttacker(event) == null) {
+            return;
+        }
         ArrayDeque<LivingEntity> stack = CURRENT_ATTACKER_STACK.get();
         if (!stack.isEmpty()) {
             stack.pop();
