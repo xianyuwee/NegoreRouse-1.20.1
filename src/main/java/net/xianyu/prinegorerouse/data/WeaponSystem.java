@@ -29,6 +29,11 @@ public class WeaponSystem {
         return difficulty;
     }
 
+    // 重置难度为默认值（退服/切存档时调用）
+    public static void reset() {
+        setDifficulty(DEFAULT_DIFFICULTY);
+    }
+
     // 初始化基础要求（难度1的数值）
     public static void initialize() {
         // 基础值：难度1时的 荣耀值/杀敌数/锻造数

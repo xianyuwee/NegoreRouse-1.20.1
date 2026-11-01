@@ -9,7 +9,12 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraftforge.event.OnDatapackSyncEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -75,6 +80,8 @@ public class prinegorerouse {
 //      ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
 
         MinecraftForge.EVENT_BUS.addListener(this::onWorldLoad);
+        MinecraftForge.EVENT_BUS.addListener(this::onServerStopped);
+        MinecraftForge.EVENT_BUS.addListener(this::onDatapackSync);
 
         // 注册配置（其余通用开关仍走 toml；难度已改为世界存档数据，不再依赖配置文件）
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, NRConfig.COMMON_CONFIG);
@@ -95,18 +102,47 @@ public class prinegorerouse {
         // 只在服务端世界加载时执行
         if (event.getLevel().isClientSide()) return;
 
-        if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+        if (event.getLevel() instanceof ServerLevel serverLevel) {
             // 检查是否已经注入过（避免每个维度加载都重复注入）
             if (NRBladeRuntimeRecipeRegistry.hasInjectedOnce) return;
             NRBladeRuntimeRecipeRegistry.hasInjectedOnce = true;
 
-            RecipeManager recipeManager = serverLevel.getServer().getRecipeManager();
+            MinecraftServer server = serverLevel.getServer();
+            ServerLevel overworld = server.overworld();
+            ServerLevel targetLevel = overworld != null ? overworld : serverLevel;
+
+            RecipeManager recipeManager = server.getRecipeManager();
             // 读取本存档记忆的难度并应用到运行时（首次进世界 / 新建世界时为默认 5）
-            int difficulty = DifficultySavedData.get(serverLevel).getDifficulty();
+            int difficulty = DifficultySavedData.get(targetLevel).getDifficulty();
             WeaponSystem.setDifficulty(difficulty);
 
-            serverLevel.getServer().execute(() ->
+            server.execute(() ->
                     NRBladeRuntimeRecipeRegistry.refreshRecipes(recipeManager));
+        }
+    }
+
+    // 服务端停止/退出世界：重置配方注入状态与难度，彻底修复单机切存档导致动态配方丢失与难度数据残留的 Bug
+    private void onServerStopped(ServerStoppedEvent event) {
+        NRBladeRuntimeRecipeRegistry.resetInjection();
+        WeaponSystem.reset();
+    }
+
+    // 数据包同步/重载事件：执行 /reload 时重新应用难度并热重载配方与同步客户端
+    private void onDatapackSync(OnDatapackSyncEvent event) {
+        if (event.getPlayer() == null && event.getPlayerList() != null && event.getPlayerList().getServer() != null) {
+            MinecraftServer server = event.getPlayerList().getServer();
+            ServerLevel overworld = server.overworld();
+            if (overworld != null) {
+                int difficulty = DifficultySavedData.get(overworld).getDifficulty();
+                WeaponSystem.setDifficulty(difficulty);
+            }
+            RecipeManager recipeManager = server.getRecipeManager();
+            server.execute(() -> {
+                NRBladeRuntimeRecipeRegistry.refreshRecipes(recipeManager);
+                for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                    NetworkPacketHandler.sendToClientPlayer(new BladeRecipeReloadPacket(), player);
+                }
+            });
         }
     }
 

@@ -30,7 +30,7 @@ import java.util.Set;
 public class NRBladeRuntimeRecipeRegistry {
     public static boolean hasInjectedOnce = false;
 
-    // 所有动态配方ID（12把刀全覆盖）
+    // 所有动态配方ID（13把刀全覆盖）
     private static final List<ResourceLocation> DYNAMIC_RECIPES = List.of(
             NrBladeBuiltInRegistry.AEON_BLADE.location(),
             NrBladeBuiltInRegistry.ANANKE_BLADE.location(),
@@ -43,8 +43,13 @@ public class NRBladeRuntimeRecipeRegistry {
             NrBladeBuiltInRegistry.HERCULES_BLADE.location(),
             NrBladeBuiltInRegistry.NIER_BLADE.location(),
             NrBladeBuiltInRegistry.PROTOGENOI_BLADE.location(),
-            NrBladeBuiltInRegistry.TARTARUS_BLADE.location()
+            NrBladeBuiltInRegistry.TARTARUS_BLADE.location(),
+            NrBladeBuiltInRegistry.ARITEMISS_HF_BLADE.location()
     );
+
+    public static void resetInjection() {
+        hasInjectedOnce = false;
+    }
 
     @SubscribeEvent
     public static void onCommonSetup(FMLCommonSetupEvent event) {
@@ -85,7 +90,7 @@ public class NRBladeRuntimeRecipeRegistry {
         prinegorerouse.LOGGER.info("拔刀剑配方重载完成！");
     }
 
-    // ====================== 生成全部12把刀配方 ======================
+    // ====================== 生成全部13把刀配方 ======================
     private static List<Recipe<?>> generateAllBladeRecipes() {
         List<Recipe<?>> recipes = new ArrayList<>();
         recipes.add(createAeonBladeRecipe());
