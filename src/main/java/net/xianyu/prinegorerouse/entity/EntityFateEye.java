@@ -229,6 +229,7 @@ public class EntityFateEye extends Entity {
         sword.setSpeed(10.0F);
         sword.setDelayTicks(SWORD_DELAY);
         sword.setLockTarget(target);
+        sword.setMagneticStorm(true); // 统一磁暴样式：平滑追踪 + 拖尾
         // 在“以眼为中心的水平环”上随机取点生成（而非眼实体内部），附带少量竖直抖动
         double ang = this.random.nextDouble() * Math.PI * 2.0;
         Vec3 spawnPos = this.position().add(

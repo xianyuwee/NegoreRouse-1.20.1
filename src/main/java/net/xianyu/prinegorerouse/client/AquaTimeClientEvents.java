@@ -26,11 +26,12 @@ import net.xianyu.prinegorerouse.prinegorerouse;
 @Mod.EventBusSubscriber(modid = prinegorerouse.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class AquaTimeClientEvents {
 
-    /** 虚拟格子相对背包 GUI 左上角的坐标（选取生存背包里的一块空白区域）。 */
-    private static final int SLOT_X = 152;
-    private static final int SLOT_Y = 54;
-    /** 格子边长。 */
-    private static final int SLOT_SIZE = 18;
+    /**
+     * 虚拟格子位置：不再写死坐标，改读客户端配置（可由 {@link AquaHudEditScreen} 拖拽调）。
+     * 具体换算与默认值见 {@link AquaInvLayout}：旧默认值 (152,54) 落在面板右缘的 buff 图标列上，
+     * 现在默认取合成区正下方的空带 (134,62)。
+     */
+    private static final int SLOT_SIZE = AquaInvLayout.SIZE;
 
     private AquaTimeClientEvents() {
     }
@@ -42,15 +43,23 @@ public final class AquaTimeClientEvents {
 
     /**
      * 计算背包虚拟格子在屏幕上的绝对坐标。
-     * 直接取 {@link AbstractContainerScreen#getGuiLeft()/getGuiTop()}（原版真实 leftPos/topPos），
+     * 直接取 {@link AbstractContainerScreen#getGuiLeft()} / {@link AbstractContainerScreen#getGuiTop()}（原版真实 leftPos/topPos），
      * 这样打开配方书导致 GUI 左移时，格子会跟随 GUI 一起移动，不会与副手槽等错位重叠。
      */
     private static int slotScreenX(ScreenEvent event) {
-        return ((AbstractContainerScreen<?>) event.getScreen()).getGuiLeft() + SLOT_X;
+        return ((AbstractContainerScreen<?>) event.getScreen()).getGuiLeft() + AquaInvLayout.x();
     }
 
     private static int slotScreenY(ScreenEvent event) {
-        return ((AbstractContainerScreen<?>) event.getScreen()).getGuiTop() + SLOT_Y;
+        return ((AbstractContainerScreen<?>) event.getScreen()).getGuiTop() + AquaInvLayout.y();
+    }
+
+    /**
+     * 数值文字的纵向位置：格子靠近面板顶部（或被拖到面板外上方）时放到格子下方，
+     * 否则会顶出屏幕/GUI 上缘。与 HUD 那边的处理保持同一思路。
+     */
+    private static int textY(int guiTop, int slotTop) {
+        return slotTop - guiTop < 12 ? slotTop + SLOT_SIZE + 2 : slotTop - 10;
     }
 
     /** 背包界面：绘制虚拟格子与数值。 */
@@ -65,7 +74,8 @@ public final class AquaTimeClientEvents {
         GuiGraphics graphics = event.getGuiGraphics();
         AquaGaugeRenderer.draw(graphics, x, y, SLOT_SIZE, amount);
         graphics.drawString(Minecraft.getInstance().font,
-                Component.literal(AquaGaugeRenderer.format(amount)), x, y - 10, ChatFormatting.AQUA.getColor());
+                Component.literal(AquaGaugeRenderer.format(amount)), x, textY(
+                        ((AbstractContainerScreen<?>) event.getScreen()).getGuiTop(), y), ChatFormatting.AQUA.getColor());
     }
 
     /** 背包界面：左键点击虚拟格子 -> 发送存物请求。 */

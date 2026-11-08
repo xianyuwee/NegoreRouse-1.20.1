@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SingleQuadParticle;
@@ -85,6 +86,13 @@ public class BlackHoleParticle extends SingleQuadParticle {
     /** 把黑洞贴图作为独立纹理注册进 {@link TextureManager}（不进粒子图集）。 */
     public static void ensureTexture(TextureManager manager) {
         if (textureRegistered) {
+            return;
+        }
+        // RegisterParticleProvidersEvent 发生在资源重载之前，此时资源包里还没有本模组的贴图，
+        // register() 会立刻尝试加载并抛 FileNotFoundException；而 TextureManager 内部会兜底成
+        // missing 贴图并吞掉异常，于是 textureRegistered 被置 true，渲染 begin 里的兜底调用
+        // 再也不会生效 → 贴图永久缺失。所以先确认资源已可读，不可读就留给下次（渲染时）再试。
+        if (Minecraft.getInstance().getResourceManager().getResource(TEXTURE).isEmpty()) {
             return;
         }
         AbstractTexture texture = new SimpleTexture(TEXTURE);

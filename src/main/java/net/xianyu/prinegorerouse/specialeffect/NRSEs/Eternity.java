@@ -25,7 +25,12 @@ import net.xianyu.prinegorerouse.specialeffect.NRSpecialEffect;
 import net.xianyu.prinegorerouse.utils.BlackHoleUtil;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 /**
  * Eternity（永恒瞳矇）SE——"SA 叠层 → SE 爆发"一体化机制（自原 Eternity/OverTheHorizon/BlackHoleAttack
@@ -33,7 +38,9 @@ import java.util.Random;
  * <p>叠层：任意 SA（特殊斩，非 Fail 型）命中施放即对统一索敌目标（锁定→准星→最近，见
  * {@link BlackHoleUtil#selectTarget}）+1 层；<b>OverTheHorizon 翻倍（+2）</b>；上限
  * {@link BlackHoleUtil#MAX_STACKS} 层。层数在目标身上以黑洞粒子可视化，层满时动态化。</p>
- * <p>爆发（已激活）：命中时目标减半当前血量并消耗全部层数生成次元斩（行为同旧版）。
+ * <p>爆发（已激活）：命中时目标减半当前血量并消耗全部层数生成次元斩（行为同旧版；
+ * 每名释放者至多 {@value #MAX_ALIVE_CUTS} 个存活次元斩，达上限的再次触发不再新建实体，
+ * 改为刷新存活斩的存在时间以控制渲染/运算压力）。
  * 未激活：<b>不再直接断裂</b>，改为每次命中额外消耗 1 点耐久；刀真正断裂时
  * （{@link SlashBladeEvent.BreakEvent}）补偿 <b>+1000 耀魂</b>，且 {@value #BREAK_REPAIR_PCT}% 概率
  * 直接回满耐久。</p>
@@ -52,6 +59,11 @@ public class Eternity extends NRSpecialEffect {
     private static final int BREAK_REPAIR_PCT = 25;
     /** 黑洞可视化粒子广播间隔（tick）。 */
     private static final int VIZ_INTERVAL = 4;
+    /** 次元斩存在上限（按释放者）：达上限时再次触发只刷新存活斩时间，不新建实体。 */
+    private static final int MAX_ALIVE_CUTS = 2;
+
+    /** 各释放玩家的存活次元斩弱引用名单：实体被自然 GC，命中时顺手剪除失效项，停机清空。 */
+    private static final Map<UUID, List<WeakReference<EntityNRJudgementCut>>> PLAYER_CUTS = new HashMap<>();
 
     // ============================================================
     // SA 叠层：任意 SA 施放（非 Fail）即叠层，OTA 翻倍
@@ -180,6 +192,7 @@ public class Eternity extends NRSpecialEffect {
     @SubscribeEvent
     public static void onServerStopped(ServerStoppedEvent event) {
         BlackHoleUtil.clear();
+        PLAYER_CUTS.clear();
     }
 
     /**
@@ -229,11 +242,36 @@ public class Eternity extends NRSpecialEffect {
     private static void spawnJudgementCut(Player player, LivingEntity target) {
         // 严格校验：玩家和目标都必须存活、非空
         if (player == null || !player.isAlive() || target == null || !target.isAlive()) return;
+        Level world = target.level();
+        if (world.isClientSide()) return;
         int blackHoleCount = BlackHoleUtil.getBlackHoleCount(target);
         if (blackHoleCount <= 0) return;
-        // 创建次元斩实体（增加属性上限，避免数值异常）
-        EntityNRJudgementCut judgementCut = new EntityNRJudgementCut(NrEntitiesRegistry.NRJudgementCut, target.level());
-        judgementCut.setLifetime(Math.min(blackHoleCount * 20, 200)); // 生命周期上限10秒
+        int newLifetime = Math.min(blackHoleCount * 20, 200); // 生命周期上限10秒
+
+        // 存在上限：先剪除已失效的引用，再看是否已达上限
+        List<WeakReference<EntityNRJudgementCut>> bucket =
+                PLAYER_CUTS.computeIfAbsent(player.getUUID(), k -> new ArrayList<>());
+        bucket.removeIf(ref -> {
+            EntityNRJudgementCut c = ref.get();
+            return c == null || c.isRemoved();
+        });
+        if (bucket.size() >= MAX_ALIVE_CUTS) {
+            // 已达上限：不新建实体，只刷新存活斩的存在时间。
+            // 父类 lifetime 是总时长而非倒计时（tryDespawn 比较 getLifetime() < tickCount），
+            // 故刷新须以当前 tickCount 起算；子类 setLifetime 已 clamp [0,200] 封顶
+            for (WeakReference<EntityNRJudgementCut> ref : bucket) {
+                EntityNRJudgementCut cut = ref.get();
+                if (cut != null && !cut.isRemoved()) {
+                    cut.setLifetime(cut.tickCount + newLifetime);
+                }
+            }
+            BlackHoleUtil.resetBlackHoleCount(target); // 照常消耗层数，与正常爆发一致
+            return;
+        }
+
+        // 未达上限：创建次元斩实体（增加属性上限，避免数值异常）
+        EntityNRJudgementCut judgementCut = new EntityNRJudgementCut(NrEntitiesRegistry.NRJudgementCut, world);
+        judgementCut.setLifetime(newLifetime);
         judgementCut.setDamage(Math.min(blackHoleCount * 5, 50));     // 伤害上限50
         judgementCut.setCycleHit(true);
         // 核心修复：射击者设置为释放技能的玩家，而非被攻击目标
@@ -242,10 +280,8 @@ public class Eternity extends NRSpecialEffect {
         // 缩放下限保证低层数可见（实体内另有 clamp 兜底）
         judgementCut.setRenderScale(0.5f + blackHoleCount * 0.1f);
         judgementCut.setColor(0x4B0082);
-        // 安全校验：世界非客户端、实体已正确初始化再加入世界
-        if (!target.level().isClientSide()) {
-            target.level().addFreshEntity(judgementCut);
-        }
+        world.addFreshEntity(judgementCut);
+        bucket.add(new WeakReference<>(judgementCut));
         BlackHoleUtil.resetBlackHoleCount(target);
     }
 }

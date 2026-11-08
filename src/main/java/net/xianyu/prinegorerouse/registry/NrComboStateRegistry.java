@@ -44,7 +44,8 @@ public class NrComboStateRegistry {
         }).addTickAction(ComboState.TimeLineTickAction.getBuilder().put(2, (entityIn) -> {
             AttackManager.doSlash(entityIn, -50F, Vec3.ZERO, false, false, 2.0F);
         }).put(3, (entityIn) -> {
-            // 穹顶十二式幻影剑：起始飞行速度 3.0，剑在 EntityZenithSword 内于 1s 内逐渐加速到 5.0
+            // 穹顶十二式幻影剑：收拢段 3.0 格/tick → 拐向段限速 2.4 → 俯冲段加速到 6.5
+            // （三段式在 EntityZenithSword 内，静止目标的下落段为直线陡冲，总命中时间约 1.05s）
             Zenith12th.doSlash(entityIn, false, 3.0F);
         }).build()).addHitEffect(StunManager::setStun);
         Objects.requireNonNull(var1002);

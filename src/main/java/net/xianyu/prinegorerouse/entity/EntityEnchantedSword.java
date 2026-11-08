@@ -30,10 +30,37 @@ public class EntityEnchantedSword extends EntityNRBlisteringSword {
         return new EntityEnchantedSword(NrEntitiesRegistry.Enchanted_Sword, worldIn);
     }
 
+    public static final net.minecraft.network.syncher.EntityDataAccessor<Boolean> IS_ZENITH =
+            net.minecraft.network.syncher.SynchedEntityData.defineId(EntityEnchantedSword.class, net.minecraft.network.syncher.EntityDataSerializers.BOOLEAN);
+
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(IS_ZENITH, false);
+    }
+
+    public void setZenith(boolean isZenith) {
+        this.entityData.set(IS_ZENITH, isZenith);
+    }
+
+    public boolean isZenith() {
+        return this.entityData.get(IS_ZENITH);
+    }
+
+    /** 拖尾：十二式专属剑开启（磁暴样式由父类默认判断，两者互不影响）。采样/老化统一由父类维护。 */
+    @Override
+    protected boolean shouldRecordTrail() {
+        return super.shouldRecordTrail() || this.isZenith();
+    }
+
     @Override
     protected void onHitEntity(EntityHitResult result) {
         // 释放者同源排除（本人 / 坐骑载具 / 其所属女仆·宠物）：雷光表现与伤害一律不生效
-        if (isOwnerRelated(result.getEntity())) return;
+        if (isOwnerRelated(result.getEntity())) {
+            advancePierceForSkippedHit(); // 必须推进父类穿透循环，否则单个 tick 内会无限重试
+            return;
+        }
         Entity entity = result.getEntity();
         Level level = entity.level();
         if (!level.isClientSide() && level instanceof ServerLevel serverLevel) {
@@ -110,6 +137,8 @@ public class EntityEnchantedSword extends EntityNRBlisteringSword {
             sword.setColor(colorCode);
             sword.setNoClip(clip);
             sword.setDelayTicks(delay);
+            // 统一使用「磁暴样式」的平滑追踪 + 拖尾：清耀/炯恻等 SE 生成的幻影剑不再是迟钝旧手感
+            sword.setMagneticStorm(true);
 
             if (mode == SpawnMode.RANDOM) {
                 Vec3 initPos = calculateInitialRandomPos(centerPos);

@@ -28,7 +28,10 @@ public class EntityCountableSwords extends EntityNRBlisteringSword {
     @Override
     protected void onHitEntity(EntityHitResult result) {
         // 释放者同源排除：不得在本人·坐骑·其女仆宠物身上结算溢出并在其位置连锁生成剑
-        if (isOwnerRelated(result.getEntity())) return;
+        if (isOwnerRelated(result.getEntity())) {
+            advancePierceForSkippedHit(); // 跳过命中必须推进父类穿透循环，否则单 tick 死循环
+            return;
+        }
 
         // 1. 先调用父类逻辑（如果父类有基础伤害处理，需确保顺序）
         super.onHitEntity(result);
@@ -103,6 +106,7 @@ public class EntityCountableSwords extends EntityNRBlisteringSword {
         sword.setDamage(damage);
         sword.setColor(colorCode);
         sword.setNoClip(true); // 强制穿透
+        sword.setMagneticStorm(true); // 统一磁暴样式：平滑追踪 + 拖尾
 
         // 设置随机位置
         Vec3 initPos = calculateInitialRandomPos(centerPos);
@@ -160,6 +164,8 @@ public class EntityCountableSwords extends EntityNRBlisteringSword {
             sword.setColor(colorCode);
             sword.setNoClip(clip);
             sword.setDelayTicks(delay);
+            // 统一使用「磁暴样式」的平滑追踪 + 拖尾
+            sword.setMagneticStorm(true);
 
             if (mode == SpawnMode.RANDOM) {
                 Vec3 initPos = calculateInitialRandomPos(centerPos);

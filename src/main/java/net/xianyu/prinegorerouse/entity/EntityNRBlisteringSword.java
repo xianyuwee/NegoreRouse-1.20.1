@@ -7,6 +7,8 @@ import mods.flammpfeil.slashblade.item.ItemSlashBlade;
 import mods.flammpfeil.slashblade.util.KnockBacks;
 import mods.flammpfeil.slashblade.util.TargetSelector;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.Util;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -56,6 +58,8 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
 
     private static final EntityDataAccessor<Boolean> USE_CUSTOM_DIRECTION = SynchedEntityData.defineId(EntityNRBlisteringSword.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> AUTO_TARGETING = SynchedEntityData.defineId(EntityNRBlisteringSword.class, EntityDataSerializers.BOOLEAN);
+    /** 「磁暴」样式（MagneticStormSword 生成的幻影剑）：加速冲刺 + 平滑追踪 + 客户端拖尾。默认 false。 */
+    private static final EntityDataAccessor<Boolean> MAGNETIC_STORM = SynchedEntityData.defineId(EntityNRBlisteringSword.class, EntityDataSerializers.BOOLEAN);
 
     private final float rotationAngle = 0.0f;
     private int delayTicks = 20;
@@ -104,7 +108,109 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
 
     private static final int SEARCH_COOLDOWN = 5;
     private int searchCooldown = 0;
-    private boolean isDiscarded = false;
+    boolean isDiscarded = false;
+
+    // ==============================================
+    // 「磁暴」样式参数（MagneticStormSword 专用）
+    //   与十二式同款三段式：冲刺 → 恒定角速度平滑转向（限速）→ 对准后直线加速冲刺。
+    //   只由 setMagneticStorm(true) 开启，其它剑（Clear / Fate / 十二式…）行为不变。
+    // ==============================================
+    /** 冲刺段 tick 数：先沿发射方向直冲，再开始平滑转向。 */
+    private static final int MAG_BLAST_TICKS = 1;
+    /** 平滑转向的最大角速度（弧度/tick）：0.55 ≈ 31.5°/tick，恒定角速度画出来是圆弧，不会抖头。 */
+    private static final double MAG_TURN_MAX = 0.55;
+    /** 转向阶段限速（格/tick）：转弯半径 r = v/ω，压低速度才能让弧平滑、并保证一定收敛。 */
+    private static final double MAG_TURN_SPEED = 3.6;
+    /** 对准目标后的直线冲刺速度（格/tick）。 */
+    private static final double MAG_MAX_SPEED = 7.0;
+    /** 与目标方向夹角小于该值即视为“已对准”，之后纯直线（弧度）。 */
+    private static final double MAG_ALIGN_EPS = 0.06;
+    /** 速度缓动系数：每 tick 朝目标速度收敛的比例，避免加减速突跳。 */
+    private static final double MAG_SPEED_EASE = 0.5;
+    /**
+     * 拖尾寿命（毫秒）：<b>用真实时间而不是 tick 数</b>来老化。
+     *
+     * <p>关键教训：原来用「每个 tick 把年龄 +1」的老化方式，一旦这把剑在某一帧之后不再执行
+     * {@code tick()}（命中地面/方块后被父类冻结、被插附到实体上跟随、客户端实体被同步残留等），
+     * 年龄就永远停在原地 —— 于是那截拖尾以全亮度定格在命中点，直到整把剑消失为止，也就是
+     * 「拖尾不淡化、不消失」的现象。改成挂钟时间后，渲染端自己就能把过期顶点丢掉，
+     * 与实体是否还在 tick 完全解耦。</p>
+     */
+    public static final long TRAIL_LIFE_MILLIS = 1000L;
+    /** 拖尾寿命的 tick 等价量（20 tick ≈ 1 秒，仅用于日志/注释与旧代码兼容）。 */
+    public static final int TRAIL_LIFE_TICKS = 20;
+    /** 拖尾采样点数量上限：防止实体长时间卡住时列表无限增长。 */
+    private static final int TRAIL_MAX_SAMPLES = 96;
+    /** 拖尾最小采样间隔（平方距离）：剑没真的移动就不追加新点，避免停住的剑把拖尾「钉」在原地。 */
+    private static final double TRAIL_MIN_STEP_SQR = 1.0E-4;
+    /** 「剑已经停下」的判定半径平方（0.5 格）：围绕锚点来回抖动不算移动。 */
+    private static final double TRAIL_STUCK_RADIUS_SQR = 0.25;
+    /** 在锚点附近停留超过该毫秒数即视为停下：此后不再追加采样点，让已有拖尾自然渐隐。 */
+    private static final long TRAIL_STUCK_MILLIS = 400L;
+
+    /** 磁暴样式已经飞行的 tick 数（用于冲刺段与转向段切分）。 */
+    private int magneticFlightTicks = 0;
+    /** 客户端拖尾采样点（index 0 = 最新）；仅客户端写入，渲染线程只读。 */
+    private final List<Vec3> trailPositions = new ArrayList<>(TRAIL_MAX_SAMPLES);
+    /** 与 {@link #trailPositions} 一一对应的采样时刻（{@link Util#getMillis()}，毫秒）。 */
+    private final List<Long> trailTimes = new ArrayList<>(TRAIL_MAX_SAMPLES);
+    /** 停下判定的位置锚点与时刻：剑在锚点附近待够了时间就不再刷新拖尾。 */
+    private Vec3 trailAnchor = null;
+    private long trailAnchorMillis = 0L;
+
+    /** 是否为「磁暴」样式。 */
+    public boolean isMagneticStorm() {
+        return this.entityData.get(MAGNETIC_STORM);
+    }
+
+    /** 设置「磁暴」样式（加速冲刺 + 平滑追踪 + 拖尾）。只影响飞行/渲染，不影响生成方式。 */
+    public void setMagneticStorm(boolean magneticStorm) {
+        this.entityData.set(MAGNETIC_STORM, magneticStorm);
+    }
+
+    /** 是否记录拖尾：磁暴剑默认开；十二式由 {@code EntityEnchantedSword} 扩展（isZenith）。 */
+    protected boolean shouldRecordTrail() {
+        return isMagneticStorm();
+    }
+
+    /** 供渲染端判断这把剑是否要画拖尾。 */
+    public boolean hasTrail() {
+        return shouldRecordTrail();
+    }
+
+    /** 客户端拖尾采样点（index 0 = 最新）。 */
+    public List<Vec3> getTrailPositions() {
+        return trailPositions;
+    }
+
+    /** 第 index 个拖尾采样点的采样时刻（{@link Util#getMillis()} 毫秒），渲染端按挂钟时间算透明度。 */
+    public long getTrailTime(int index) {
+        return trailTimes.get(index);
+    }
+
+    /** 清空拖尾采样（样式关闭 / 实体已移除时）。 */
+    private void clearTrail() {
+        trailPositions.clear();
+        trailTimes.clear();
+        trailAnchor = null;
+        trailAnchorMillis = 0L;
+    }
+
+    /**
+     * 立即让"剑已停下"成立：命中方块（{@link #onHitBlock}）等明确结束飞行的时刻调用。
+     *
+     * <p>做法是把停下判定的锚点钉在当前坐标，并把锚点时刻推到
+     * {@link #TRAIL_STUCK_MILLIS} 之前，于是这一 tick 起就不再追加采样点，
+     * 已有采样点仍会按 {@link #TRAIL_LIFE_MILLIS} 自然渐隐。</p>
+     *
+     * <p>这里刻意<b>不</b>用一个永久的"禁止采样"开关：客户端 {@code isNoClip()} 读的是同步标志，
+     * 生成后头一两个 tick 可能还没同步到（此时剑若正好卡在方块里会误触发本方法）。
+     * 用锚点方案时，剑只要离开锚点 0.5 格就会自动恢复采样，误判不会导致整把剑没有拖尾。</p>
+     */
+    protected void stopTrailSampling() {
+        this.trailAnchor = position();
+        this.trailAnchorMillis = Util.getMillis() - TRAIL_STUCK_MILLIS - 1L;
+    }
 
     // ==============================================
     // 新增：delay阶段固定位置缓存
@@ -159,8 +265,26 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
 
     public EntityNRBlisteringSword(EntityType<? extends Projectile> type, Level world) {
         super(type, world);
-        this.setPierce((byte) 5);
+        // ⚠️ 穿透次数必须保持 0！父类 EntityAbstractSummonedSword.tick() 里有这样一段“穿透循环”：
+        //     while (isAlive()) { hit = getRayTrace(from, to); ...; onHit(hit);
+        //                         if (getPierce() <= 0) break; /* 否则用同一个 from/to 无限重试 */ }
+        // 它唯一的推进手段是 super.onHitEntity() 内部的 alreadyHits 记录 + setPierce(pierce-1)/burst()。
+        // 而本类与各子类为了“剑穿过同源目标/非敌对实体”有大量直接 return 的早退分支，
+        // 一旦早退没有消耗穿透次数，父类就会在同一个 server tick 里用同样的射线结果原地死循环
+        // → 服务端主线程永久卡死（表现为游戏未响应，日志里是 ModernFix watchdog
+        //   “A single server tick has taken 40001ms” + 线程栈停在幻影剑的 tick/onHit/getRayTrace）。
+        // 多段穿透已经由本类的 currentMainTarget、EntityZenithSword 的 piercedIds/pierceCount 自行实现，
+        // 不需要也不应该再依赖父类的 pierce 机制。
+        this.setPierce((byte) 0);
         this.setNoGravity(true);
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        // 1.4.3 及更早版本的实体把 pierce=5 一起存进了 NBT，读档会盖掉构造器里的归零，
+        // 老存档里的幻影剑因此仍可能触发父类穿透死循环。这里统一强制归零（单机/服务端均为权威值）。
+        this.setPierce((byte) 0);
     }
 
     @Override
@@ -180,6 +304,7 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         this.entityData.define(DELAY_TICK, delayTicks);
         this.entityData.define(USE_CUSTOM_DIRECTION, false);
         this.entityData.define(AUTO_TARGETING, false);
+        this.entityData.define(MAGNETIC_STORM, false);
     }
 
     // ==============================================
@@ -231,6 +356,61 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
             }
             super.tick();
             handleFlyingPhase();
+            updateTrail();
+        }
+    }
+
+    /**
+     * 客户端拖尾维护：按<b>挂钟时间</b>淘汰过期点 → 只有真的在飞才追加新点。
+     *
+     * <p><b>为什么用毫秒而不是 tick 计数</b>：剑一旦命中地面/方块，父类
+     * {@code EntityAbstractSummonedSword#tick} 会把它判定为 inGround 并直接 return（或插附到实体上跟随），
+     * 之后再也不会移动；更极端的情况是 tick 本身被冻结。只要老化依赖 tick，那截拖尾就会以全亮度
+     * 定格在原地直到整把剑被移除（"不淡化、不消失"）。用挂钟时间后，渲染端只画
+     * {@link #TRAIL_LIFE_MILLIS} 内的采样点，所以无论剑是否还在 tick，旧拖尾都会在 1 秒内渐隐消失。</p>
+     *
+     * <p><b>防止抖动续命</b>：命中点附近剑可能会被碰撞/插附逻辑每帧推动零点几格来回抖，
+     * 若只按"距离上一个点 > 0.01"判断就会一直追加新点、拖尾永远不淡。因此额外用
+     * {@link #trailAnchor} 做"停下判定"：0.5 格范围内待满 {@link #TRAIL_STUCK_MILLIS} 毫秒就停止采样。</p>
+     */
+    private void updateTrail() {
+        if (!level().isClientSide()) {
+            return;
+        }
+        long now = Util.getMillis();
+        // 1) 淘汰过期采样点（列表按时间从新到旧排列）
+        while (!trailTimes.isEmpty() && now - trailTimes.get(trailTimes.size() - 1) >= TRAIL_LIFE_MILLIS) {
+            trailTimes.remove(trailTimes.size() - 1);
+            trailPositions.remove(trailPositions.size() - 1);
+        }
+        if (!itFired() || isRemoved() || !shouldRecordTrail()) {
+            clearTrail();
+            return;
+        }
+
+        Vec3 pos = position();
+        // 2) 停下判定：锚点外 > 0.5 格才算真的在移动
+        if (trailAnchor == null || pos.distanceToSqr(trailAnchor) > TRAIL_STUCK_RADIUS_SQR) {
+            trailAnchor = pos;
+            trailAnchorMillis = now;
+        }
+        // 已插附到实体 / 速度归零 / 在锚点附近磨了很久（含命中方块后 stopTrailSampling 的立刻停止）
+        // → 判定停下，不再追加采样点
+        boolean noLongerFlying = now - trailAnchorMillis > TRAIL_STUCK_MILLIS
+                || getHitEntity() != null
+                || getDeltaMovement().lengthSqr() < 1.0E-6;
+        if (noLongerFlying) {
+            return;
+        }
+
+        // 3) 只有真的移动了才追加新点
+        if (trailPositions.isEmpty() || trailPositions.get(0).distanceToSqr(pos) > TRAIL_MIN_STEP_SQR) {
+            trailPositions.add(0, pos);
+            trailTimes.add(0, now);
+            while (trailPositions.size() > TRAIL_MAX_SAMPLES) {
+                trailPositions.remove(trailPositions.size() - 1);
+                trailTimes.remove(trailTimes.size() - 1);
+            }
         }
     }
 
@@ -247,6 +427,12 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         if (block == Blocks.NETHER_PORTAL || block == Blocks.END_PORTAL || block == Blocks.END_GATEWAY) {
             return;
         }
+        // 命中方块＝这把剑的旅程到此为止（父类 EntityAbstractSummonedSword#onHitBlock 会把速度改成
+        // "指向命中面的短向量"、把剑回退 0.05 格并置 inGround，随后 tick 里 inGround 分支直接 return，
+        // 剑就在命中点附近停住并最终 burst()）。若继续按位置采样，剑在命中面附近的微小位移/抖动会
+        // 每 tick 刷新一次拖尾采样，整条尾迹就永远以全亮度钉在落点上、直到剑消失 —— 就是
+        // 「命中地面后拖尾不淡化不消失」。这里直接停止采样，已有采样点仍会按时间自然渐隐。
+        stopTrailSampling();
         super.onHitBlock(result);
     }
 
@@ -346,20 +532,29 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
     }
 
     private Entity getMainEntity(Entity entity) {
+        if (entity == null) return null;
         if (entity instanceof EnderDragonPart part) {
             return part.getParent();
         }
-        try {
-            Field parentField = entity.getClass().getDeclaredField("parent");
-            parentField.setAccessible(true);
-            Object parent = parentField.get(entity);
-            if (parent instanceof Entity) return (Entity) parent;
-        } catch (Exception ignored) {}
-        try {
-            Method getParent = entity.getClass().getMethod("getParent");
-            Object parent = getParent.invoke(entity);
-            if (parent instanceof Entity) return (Entity) parent;
-        } catch (Exception ignored) {}
+
+        // 1) parent 字段
+        Field f = PARENT_FIELD_CACHE.get(entity.getClass());
+        if (f != null) {
+            try {
+                Object p = f.get(entity);
+                if (p instanceof Entity pe) return pe;
+            } catch (Throwable ignored) {}
+        }
+
+        // 2) getParent() 方法
+        Method m = GET_PARENT_CACHE.get(entity.getClass());
+        if (m != null) {
+            try {
+                Object p = m.invoke(entity);
+                if (p instanceof Entity pe) return pe;
+            } catch (Throwable ignored) {}
+        }
+
         return entity;
     }
 
@@ -375,6 +570,34 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         }
         return Optional.empty();
     }
+
+    /** 缓存每种实体类型的 parent 字段（无则 null），避免热路径反复反射 + 抛异常。 */
+    private static final ClassValue<Field> PARENT_FIELD_CACHE = new ClassValue<>() {
+        @Override
+        protected Field computeValue(Class<?> type) {
+            try {
+                Field f = type.getDeclaredField("parent");
+                f.setAccessible(true);
+                return f;
+            } catch (Throwable t) {
+                return null; // 缓存 null，以后不再尝试
+            }
+        }
+    };
+
+    /** 缓存每种实体类型的 getParent() 方法（无则 null），避免热路径反复反射 + 抛异常。 */
+    private static final ClassValue<Method> GET_PARENT_CACHE = new ClassValue<>() {
+        @Override
+        protected Method computeValue(Class<?> type) {
+            try {
+                Method m = type.getMethod("getParent");
+                m.setAccessible(true);
+                return m;
+            } catch (Throwable t) {
+                return null; // 缓存 null，以后不再尝试
+            }
+        }
+    };
 
     /**
      * 统一判定：某实体是否与本剑的<b>释放者同源</b>——本人、其坐骑/载具、或其所属驯服生物
@@ -656,6 +879,10 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
      * 统一飞行追踪：捕获到目标就逐渐弧过去并结算命中；无目标或目标已死亡则保持当时方向直线飞行。
      */
     protected void handleSmartTracking() {
+        if (isMagneticStorm()) {
+            handleMagneticTracking();
+            return;
+        }
         Entity t = resolveHomingTarget();
         if (t == null) {
             keepCurrentCourse();
@@ -663,6 +890,74 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         }
         steerTowardsTarget(t);
         checkDirectHit(t);
+    }
+
+    /**
+     * 「磁暴」样式的平滑追踪：冲刺 → 恒定角速度平滑转向（限速）→ 对准后直线加速冲刺。
+     *
+     * <p>与默认 {@link #steerTowardsTarget}（转角随距离自适应）的区别：转角是<b>恒定角速度</b>，
+     * 轨迹是一段圆弧；夹角小于 {@link #MAG_ALIGN_EPS} 后直接把方向设为指向目标，末段是严格直线；
+     * 速度全程指数缓动（转向时限速以压小转弯半径，对准后加速到 {@link #MAG_MAX_SPEED}）。
+     * 因此既不会绕大圈飞走，也不会出现方向突跳。</p>
+     */
+    private void handleMagneticTracking() {
+        Entity t = resolveHomingTarget();
+        if (t == null) {
+            keepCurrentCourse();
+            return;
+        }
+        magneticFlightTicks++;
+        Vec3 vel = getDeltaMovement();
+        double spd = vel.length();
+        if (magneticFlightTicks <= MAG_BLAST_TICKS) {
+            // 冲刺段：方向不变，只把速度缓动到冲刺速度
+            if (spd > 1.0E-4) {
+                setDeltaMovement(vel.scale((spd + (MAG_TURN_SPEED - spd) * MAG_SPEED_EASE) / spd));
+            }
+            return;
+        }
+
+        Vec3 pos = position();
+        Vec3 toTarget = magneticAimPoint(t).subtract(pos);
+        double dist = toTarget.length();
+        if (dist < 1.0E-3) {
+            return;
+        }
+        Vec3 want = toTarget.scale(1.0 / dist);
+        Vec3 cur = spd < 1.0E-4 ? want : vel.scale(1.0 / spd);
+
+        double remaining = Math.acos(Mth.clamp(cur.dot(want), -1.0, 1.0));
+        boolean aligned = remaining < MAG_ALIGN_EPS;
+        // 尊重各自配置的速度：比默认上限更快的剑（如炯恻之眼的 10.0）保持自己的冲刺速度
+        double cruise = Math.max(getSpeed(), MAG_MAX_SPEED);
+        double turnSpeed = Math.min(cruise, MAG_TURN_SPEED);
+        double desired = aligned ? cruise : turnSpeed;
+        double nextSpeed = spd + (desired - spd) * MAG_SPEED_EASE;
+
+        double step = Math.min(remaining, MAG_TURN_MAX);
+        // 目标已经进入「约 1.5 tick 的位移内」时直接对准目标中心：
+        // 否则高速下这一 tick 的位移会从碰撞箱旁边擦过去（近距离擦身/绕圈都由此而来）。
+        if (dist <= nextSpeed * 1.5) {
+            step = remaining;
+        }
+        Vec3 newDir = rotateTowards(cur, want, step);
+        setDeltaMovement(newDir.scale(nextSpeed));
+
+        if (checkDirectHit(t)) {
+            return;
+        }
+        updateRotationFromVelocity(newDir);
+    }
+
+    /** 磁暴样式的瞄准点：静止目标取身体中心；移动目标按飞行时间做短提前量。 */
+    private Vec3 magneticAimPoint(Entity target) {
+        Vec3 center = calculateTargetPosition(target);
+        Vec3 move = target.getDeltaMovement();
+        if (move.lengthSqr() < 1.0E-6) {
+            return center;
+        }
+        double lead = Math.min(position().distanceTo(center) / MAG_MAX_SPEED, 6.0);
+        return center.add(move.scale(lead));
     }
 
     // ==============================================
@@ -768,9 +1063,28 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
     @Override
     protected void onHit(HitResult result) {
         if (result instanceof EntityHitResult ehr && isOwnerRelated(ehr.getEntity())) {
+            // 不能只是 return：父类 tick() 的穿透循环会拿同一个命中结果再次调用本方法，
+            // 而 getRayTrace 又不会排除该实体（它不在父类的 alreadyHits 里），于是原地死循环。
+            advancePierceForSkippedHit();
             return;
         }
         super.onHit(result);
+    }
+
+    /**
+     * 保证父类 {@code EntityAbstractSummonedSword.tick()} 的穿透重试循环一定向前推进。
+     *
+     * <p>父类只有在 {@code getPierce() > 0} 时才会重试，而重试能否结束取决于
+     * {@code super.onHitEntity()} 里写入的 {@code alreadyHits} 与 {@code setPierce(pierce-1)}。
+     * 因此凡是“主动跳过这次命中”的早退分支（同源目标、已处理目标、非敌对实体……）都必须调用本方法：
+     * 有穿透配额就消耗一次，配额为 0 时什么都不做（此时父类本身只跑一趟，不会重试）。
+     * 漏调用会让服务端主线程在单个 tick 里无限循环、游戏卡死。</p>
+     */
+    protected void advancePierceForSkippedHit() {
+        byte pierce = this.getPierce();
+        if (pierce > 0) {
+            this.setPierce((byte) (pierce - 1));
+        }
     }
 
     @Override
@@ -801,8 +1115,14 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
     protected void onHitEntity(EntityHitResult res) {
         Entity t = getMainEntity(res.getEntity());
         // 穿过释放者同源对象：不结算、不标记目标、不销毁，避免刚生成即撞到主人而自毁。
-        if (isOwnerRelated(res.getEntity()) || isOwnerRelated(t)) return;
-        if (currentMainTarget != null && currentMainTarget.equals(t)) return;
+        if (isOwnerRelated(res.getEntity()) || isOwnerRelated(t)) {
+            advancePierceForSkippedHit(); // 跳过命中但仍需推进父类穿透循环，否则单 tick 死循环
+            return;
+        }
+        if (currentMainTarget != null && currentMainTarget.equals(t)) {
+            advancePierceForSkippedHit(); // 同一目标重复命中：同样必须推进，否则死循环
+            return;
+        }
         currentMainTarget = t;
         applyHitEffects(t);
         discardSafely();
@@ -847,8 +1167,9 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         Vec3 from = position();
         Vec3 to = from.add(getDeltaMovement());
         if (box.intersects(getBoundingBox()) || box.clip(from, to).isPresent()) {
+            this.isDiscarded = true; // 提前标记，防止重入
             applyHitEffects(main);
-            discardSafely();
+            discardSafely(); // 确保销毁
             return true;
         }
         return false;
@@ -923,14 +1244,22 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
         return v.scale(Math.cos(angle)).add(k.cross(v).scale(Math.sin(angle))).normalize();
     }
 
-    /** 取一条与 v 垂直的单位轴：用与 v 夹角最大的世界轴做叉乘，避免结果接近零向量。 */
+    /**
+     * 取一条与 v 垂直的单位轴。
+     * <p>旧实现用「与 v.x 比较后取世界 X/Y 轴」做叉乘，导致所有反向方向共享同一近似旋转轴——
+     * 十二连的 12 把剑初始方向与目标方向严格反向，全部走这里，于是统一朝同一侧偏转，
+     * 失去各自的方位感。这里改为取「v 水平分量绕 Y 轴旋转 90°」作为水平轴，
+     * 使每把剑绕自己的方位翻转（从「向上外」翻到「水平外」再翻到「向下内」），
+     * 保持各自的方位角 θ，从而散得开、汇得拢。</p>
+     */
     private static Vec3 anyPerpendicular(Vec3 v) {
-        Vec3 ref = Math.abs(v.x) < 0.9D ? new Vec3(1.0D, 0.0D, 0.0D) : new Vec3(0.0D, 1.0D, 0.0D);
-        Vec3 axis = v.cross(ref);
-        if (axis.lengthSqr() < 1.0E-12) {
-            axis = v.cross(new Vec3(0.0D, 0.0D, 1.0D));
+        double h = Math.sqrt(v.x * v.x + v.z * v.z);
+        if (h < 1.0E-4) {
+            // 纯竖直方向没有“方位”，任取一条水平轴
+            return new Vec3(1.0, 0.0, 0.0);
         }
-        return axis.lengthSqr() < 1.0E-12 ? new Vec3(1.0D, 0.0D, 0.0D) : axis.normalize();
+        // 水平轴 = 水平分量绕 Y 轴旋转 90°：保留方位角 θ 信息
+        return new Vec3(v.z / h, 0.0, -v.x / h);
     }
 
     // ==============================================
@@ -959,6 +1288,17 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
     public static void spawnSwords(LivingEntity owner, Level world, Vec3 center, SpawnMode mode, int count,
                                    boolean change, float y, float p, float zj, float k,
                                    double dmg, int color, boolean clip, int delay) {
+        // 默认开启「磁暴样式」：所有来源的幻影剑统一使用平滑追踪 + 拖尾
+        spawnSwords(owner, world, center, mode, count, change, y, p, zj, k, dmg, color, clip, delay, true);
+    }
+
+    /**
+     * @param magneticStorm 是否为「磁暴」样式（加速冲刺 + 平滑追踪 + 拖尾）。只影响飞行与渲染，
+     *                      生成位置 / 延迟 / 颜色等参数与原来完全一致。
+     */
+    public static void spawnSwords(LivingEntity owner, Level world, Vec3 center, SpawnMode mode, int count,
+                                   boolean change, float y, float p, float zj, float k,
+                                   double dmg, int color, boolean clip, int delay, boolean magneticStorm) {
         if (owner == null || !owner.isAlive()) return;
         for (int i = 0; i < count; i++) {
             EntityNRBlisteringSword sword = new EntityNRBlisteringSword(NrEntitiesRegistry.NRBlisteringSword, world);
@@ -971,6 +1311,7 @@ public class EntityNRBlisteringSword extends EntityAbstractSummonedSword {
             sword.setColor(color);
             sword.setDelayTicks(delay);
             sword.setNoClip(clip); // 原生NoClip，完全兼容
+            sword.setMagneticStorm(magneticStorm);
 
             if (y != 0 || p != 0) {
                 sword.setYAW(y + k * i + zj);

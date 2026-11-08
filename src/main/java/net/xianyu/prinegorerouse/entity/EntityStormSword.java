@@ -31,7 +31,10 @@ public class EntityStormSword extends EntityNRBlisteringSword{
     protected void onHitEntity(EntityHitResult result) {
         Entity entity = result.getEntity();
         // 释放者同源排除（本人 / 坐骑载具 / 其所属女仆·宠物，原判定只盖到了驯服生物）：不爆炸、不结算
-        if (isOwnerRelated(entity)) return;
+        if (isOwnerRelated(entity)) {
+            advancePierceForSkippedHit(); // 跳过命中必须推进父类穿透循环，否则单 tick 死循环
+            return;
+        }
         Level level = entity.level();
         if (!level.isClientSide()) {
             long currentTick = level.getGameTime();
@@ -44,7 +47,10 @@ public class EntityStormSword extends EntityNRBlisteringSword{
             }
             if (!(explodedEntitiesThisTick.contains(targetUuid))) {
                 explodedEntitiesThisTick.add(targetUuid);
-                if (!(entity instanceof LivingEntity)) return;
+                if (!(entity instanceof LivingEntity)) {
+                    advancePierceForSkippedHit(); // 非生物目标不爆炸，但必须推进父类穿透循环
+                    return;
+                }
                 Explosion explosion = level.explode(null, entity.getEyePosition().x,
                         entity.getEyePosition().y, entity.getEyePosition().z, 0.1f, true, Level.ExplosionInteraction.NONE);
                 explosion.explode();
@@ -76,6 +82,8 @@ public class EntityStormSword extends EntityNRBlisteringSword{
             sword.setColor(colorCode);
             sword.setNoClip(clip);
             sword.setDelayTicks(delay);
+            // 统一使用「磁暴样式」的平滑追踪 + 拖尾
+            sword.setMagneticStorm(true);
 
 
             if (mode == SpawnMode.RANDOM) {

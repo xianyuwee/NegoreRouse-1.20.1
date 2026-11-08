@@ -80,6 +80,7 @@ public class EntityReverseSword extends EntityNRBlisteringSword {
         sword.setColor(effect.getColor() & 0xFFFFFF); // 剑色 = buff 粒子颜色
         sword.setDelayTicks(0);
         sword.setNoClip(true);
+        sword.setMagneticStorm(true); // 统一磁暴样式：平滑追踪 + 拖尾
         sword.carried = key.toString();
         // 保留无限时长哨兵 INFINITE_DURATION(-1)；普通时长保证至少 1 tick。
         sword.duration = duration == MobEffectInstance.INFINITE_DURATION

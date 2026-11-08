@@ -29,6 +29,7 @@ import net.xianyu.prinegorerouse.entity.*;
 import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
 import net.xianyu.prinegorerouse.registry.NrSpecialEffectsRegistry;
 import net.xianyu.prinegorerouse.specialeffect.NRSpecialEffect;
+import net.xianyu.prinegorerouse.utils.DamageTypeHolderUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -187,7 +188,10 @@ public class Clear extends NRSpecialEffect {
             if (target instanceof LivingEntity livingTarget && !MaidCompat.isOwnedBy(target, player)) {
                 float maxHealth = livingTarget.getMaxHealth();
                 float realDamage = maxHealth * REAL_DAMAGE_PERCENT;
-                DamageSource trueDamageSource = player.damageSources().fellOutOfWorld();
+                // 自建 out_of_world 伤害源（新建实例）：与 ChaosHandler/Back/EntityAbsolutePhantom 一致，
+                // 避开 dummmmmmy 假人对 damageSources().fellOutOfWorld() 缓存单例的引用比较"删除暗号"
+                DamageSource trueDamageSource = new DamageSource(
+                        DamageTypeHolderUtils.getHolder(target.level(), "out_of_world"), player, player);
                 target.hurt(trueDamageSource, realDamage);
             }
 

@@ -33,7 +33,7 @@ import net.xianyu.prinegorerouse.registry.NrEntitiesRegistry;
             event.registerEntityRenderer(NrEntitiesRegistry.LineDrive, NRDriveRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.NRBlisteringSword, SummonedSwordRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.Countable_Sword, SummonedSwordRenderer::new);
-             event.registerEntityRenderer(NrEntitiesRegistry.Reverse_Sword, SummonedSwordRenderer::new);
+            event.registerEntityRenderer(NrEntitiesRegistry.Reverse_Sword, SummonedSwordRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.NRJudgementCut, NRJudgementCutRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.Absolute_Phantom, AbsolutePhantomRenderer::new);
             event.registerEntityRenderer(NrEntitiesRegistry.Fate_Eye, FateEyeRenderer::new);
